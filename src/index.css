@@ -1,0 +1,21 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg-primary: #1a1510;
+  --color-bg-card: #2a2015;
+  --color-bg-card-hover: #342a1a;
+  --color-border-primary: #4a3820;
+  --color-border-gold: #6a5030;
+  --color-gold-primary: #c9a55a;
+  --color-gold-light: #d4af7a;
+  --color-text-primary: #d4c090;
+  --color-text-muted: #9a8a70;
+  --color-available: #81c784;
+  --color-soldout: #ef9a9a;
+  --font-serif: 'Georgia', 'Times New Roman', serif;
+}
+
+body {
+  background-color: #1a1510;
+  color: #d4c090;
+}
