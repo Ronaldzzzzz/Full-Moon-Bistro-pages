@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 
 const {
   mockGetDocs,
@@ -40,12 +40,7 @@ vi.mock('./firebase', () => ({ db: {} }))
 import {
   getMenuItems,
   addMenuItem,
-  updateMenuItem,
-  deleteMenuItem,
   getInventoryItems,
-  addInventoryItem,
-  updateInventoryItem,
-  deleteInventoryItem,
 } from './firestore'
 
 const makeDocs = (items: object[]) => ({
