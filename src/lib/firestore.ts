@@ -14,7 +14,7 @@ import {
   writeBatch,
 } from 'firebase/firestore'
 import { db } from './firebase'
-import type { MenuItem, MenuCategory, InventoryItem, Message, Reply, LiveMusicConfig } from '../types'
+import type { MenuItem, InventoryItem, Message, Reply, LiveMusicConfig } from '../types'
 
 // ─── Menu Items ────────────────────────────────────────────────
 
