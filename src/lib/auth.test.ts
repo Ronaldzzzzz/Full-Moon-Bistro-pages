@@ -13,6 +13,7 @@ vi.mock('firebase/auth', () => ({
 
 vi.mock('./firebase', () => ({
   auth: {},
+  db: {},
 }))
 
 describe('hashPassword', () => {

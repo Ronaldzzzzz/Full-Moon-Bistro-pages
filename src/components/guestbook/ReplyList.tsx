@@ -1,4 +1,3 @@
-// src/components/guestbook/ReplyList.tsx
 import type { Reply } from '../../types'
 
 interface Props {

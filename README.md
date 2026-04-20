@@ -71,3 +71,26 @@ export default defineConfig([
   },
 ])
 ```
+
+
+1. Firebase Console 設定
+
+  1. 建立 Firebase 專案 → 啟用 Firestore、Storage、Authentication (Anonymous)
+  2. 複製 Web App 設定，建立 .env 檔案（參考 .env.example）
+  3. 在 Firestore 手動新增管理員密碼文件：
+    - Collection: adminPasswords
+    - Document ID = 密碼的 SHA-256 雜湊值（在瀏覽器 Console 執行：crypto.subtle.digest('SHA-256', new
+  TextEncoder().encode('你的密碼')).then(b => Array.from(new
+  Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('')).then(console.log)）
+    - 欄位：role: "owner", label: "主廚密碼"
+  4. 部署 Firestore Rules：firebase deploy --only firestore:rules（需先在 .firebaserc 填入實際 Project ID）
+
+2. GitHub Pages 設定
+
+  1. 將 repo 推送到 GitHub
+  2. Settings → Pages → Source: GitHub Actions
+  3. Settings → Secrets → 新增 6 個 VITE_FIREBASE_* 環境變數
+  4. Firebase Console → Authentication → Authorized domains → 新增 <你的帳號>.github.io
+
+  ▎ 注意：目前分支是 master，但 workflow 設定觸發 main 分支。推送前建議執行 git branch -m master main，或修改
+  ▎ .github/workflows/deploy.yml 中的 branches: [master]。

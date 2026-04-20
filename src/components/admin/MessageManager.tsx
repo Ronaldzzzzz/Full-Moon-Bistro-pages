@@ -26,12 +26,7 @@ export default function MessageManager() {
     <div>
       <div className="flex justify-between items-center mb-4">
         <span className="text-[#9a8a70] text-sm">{messages.length} 則留言</span>
-        <button
-          onClick={load}
-          className="text-xs text-[#9a8a70] hover:text-[#d4c090]"
-        >
-          重新整理
-        </button>
+        <button onClick={load} className="text-xs text-[#9a8a70] hover:text-[#d4c090]">重新整理</button>
       </div>
 
       {loading ? (

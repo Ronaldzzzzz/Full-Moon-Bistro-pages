@@ -1,4 +1,3 @@
-// src/pages/GuestbookPage.tsx
 import { useEffect, useState, useCallback } from 'react'
 import type { Message } from '../types'
 import { getMessages } from '../lib/firestore'
@@ -21,8 +20,8 @@ export default function GuestbookPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="text-center">
-        <h2 className="font-serif text-[#d4af7a] text-lg tracking-widest">✦ 留言板 ✦</h2>
-        <div className="mt-2 h-px bg-gradient-to-r from-transparent via-[#6a5030] to-transparent" />
+        <h2 className="font-serif text-[var(--color-gold-primary)] text-lg tracking-widest">✦ 留言板 ✦</h2>
+        <div className="mt-2 h-px bg-gradient-to-r from-transparent via-[var(--color-border-gold)] to-transparent" />
       </div>
 
       <MessageForm onSubmitted={load} />

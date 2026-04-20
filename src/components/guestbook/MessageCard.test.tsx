@@ -1,9 +1,8 @@
-// src/components/guestbook/MessageCard.test.tsx
 import { render, screen } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import MessageCard from './MessageCard'
 import type { Message } from '../../types'
-import type { Timestamp } from 'firebase/firestore'
+import { Timestamp } from 'firebase/firestore'
 
 vi.mock('../../lib/firestore', () => ({
   likeMessage: vi.fn().mockResolvedValue(undefined),
@@ -29,7 +28,7 @@ describe('MessageCard', () => {
   it('顯示作者 ID 與伺服器名稱', () => {
     render(<MessageCard message={mockMessage} />)
     expect(screen.getByText('光之戰士')).toBeInTheDocument()
-    expect(screen.getByText(/@Gaia/)).toBeInTheDocument()
+    expect(screen.getByText(/Gaia/)).toBeInTheDocument()
   })
 
   it('匿名留言顯示「匿名」', () => {

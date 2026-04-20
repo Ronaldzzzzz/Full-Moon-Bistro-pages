@@ -1,21 +1,28 @@
 @import "tailwindcss";
 
 @theme {
-  --color-bg-primary: #1a1510;
-  --color-bg-card: #2a2015;
-  --color-bg-card-hover: #342a1a;
-  --color-border-primary: #4a3820;
-  --color-border-gold: #6a5030;
-  --color-gold-primary: #c9a55a;
-  --color-gold-light: #d4af7a;
-  --color-text-primary: #d4c090;
-  --color-text-muted: #9a8a70;
+  --color-bg-primary: #2d1e12;
+  --color-bg-card: #3e2a1b;
+  --color-bg-card-hover: #4a3422;
+  --color-border-primary: #5d4028;
+  --color-border-gold: #8b6b4a;
+  --color-gold-primary: #f4e38e;
+  --color-gold-light: #fff5bc;
+  --color-text-primary: #e8d5b5;
+  --color-text-muted: #a68b6d;
+  --shadow-glow-warm: 0 0 15px rgba(244, 227, 142, 0.15);
+  --animate-moon-pulse: moon-pulse 3s infinite ease-in-out;
   --color-available: #81c784;
   --color-soldout: #ef9a9a;
   --font-serif: 'Georgia', 'Times New Roman', serif;
 }
 
+@keyframes moon-pulse {
+  0%, 100% { filter: drop-shadow(0 0 2px #f4e38e); opacity: 0.8; }
+  50% { filter: drop-shadow(0 0 8px #f4e38e); opacity: 1; }
+}
+
 body {
-  background-color: #1a1510;
-  color: #d4c090;
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
 }

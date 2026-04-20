@@ -20,10 +20,10 @@ export default function MenuPage() {
   return (
     <div>
       {/* Banner */}
-      <div className="border border-[#6a5030] rounded p-4 mb-6 text-center bg-gradient-to-r from-[#2a1f0e] to-[#3d2c12]">
-        <h1 className="font-serif text-[#d4af7a] text-xl tracking-widest">✦ THE SEVENTH HAVEN ✦</h1>
-        <p className="text-[#8a6a40] text-xs mt-1 tracking-wider">CAFÉ & TEA HOUSE</p>
-        <div className="mt-2 h-px bg-gradient-to-r from-transparent via-[#6a5030] to-transparent" />
+      <div className="border border-[var(--color-border-gold)] rounded p-4 mb-6 text-center bg-gradient-to-r from-[var(--color-bg-card)] to-[var(--color-bg-card-hover)] shadow-[var(--shadow-glow-warm)]">
+        <h1 className="font-serif text-[var(--color-gold-primary)] text-xl tracking-widest">✦ FULL-MOON-BISTRO (月圓餐館) ✦</h1>
+        <p className="text-[var(--color-text-muted)] text-xs mt-1 tracking-wider">MOONLIGHT & MELODY</p>
+        <div className="mt-2 h-px bg-gradient-to-r from-transparent via-[var(--color-border-gold)] to-transparent" />
       </div>
 
       {/* 分類頁籤 */}

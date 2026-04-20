@@ -1,4 +1,3 @@
-// src/App.tsx
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import MenuPage from './pages/MenuPage'

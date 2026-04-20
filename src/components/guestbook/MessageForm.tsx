@@ -1,4 +1,3 @@
-// src/components/guestbook/MessageForm.tsx
 import { useState } from 'react'
 import { addMessage } from '../../lib/firestore'
 

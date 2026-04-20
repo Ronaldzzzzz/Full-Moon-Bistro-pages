@@ -1,4 +1,3 @@
-// src/components/guestbook/MessageCard.tsx
 import { useState } from 'react'
 import type { Message } from '../../types'
 import { likeMessage } from '../../lib/firestore'

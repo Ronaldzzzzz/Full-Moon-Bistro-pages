@@ -2,7 +2,9 @@ import {
   collection,
   doc,
   getDocs,
+  getDoc,
   addDoc,
+  setDoc,
   updateDoc,
   deleteDoc,
   serverTimestamp,
@@ -12,7 +14,7 @@ import {
   writeBatch,
 } from 'firebase/firestore'
 import { db } from './firebase'
-import type { MenuItem, InventoryItem, Message, Reply } from '../types'
+import type { MenuItem, MenuCategory, InventoryItem, Message, Reply } from '../types'
 
 // ─── Menu Items ────────────────────────────────────────────────
 
@@ -126,6 +128,7 @@ export async function likeMessage(
 }
 
 export async function deleteMessage(messageId: string): Promise<void> {
+  // 先刪除子集合 replies，再刪除主文件
   const repliesSnap = await getDocs(
     collection(db, 'messages', messageId, 'replies')
   )
@@ -140,4 +143,19 @@ export async function deleteReply(
   replyId: string
 ): Promise<void> {
   await deleteDoc(doc(db, 'messages', messageId, 'replies', replyId))
+}
+
+// ─── Admin Management ──────────────────────────────────────────
+
+export async function getAdmins(): Promise<{ id: string; role: string; label: string }[]> {
+  const snap = await getDocs(collection(db, 'adminPasswords'))
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() } as { id: string; role: string; label: string }))
+}
+
+export async function addAdmin(hash: string, role: 'owner' | 'staff', label: string): Promise<void> {
+  await setDoc(doc(db, 'adminPasswords', hash), { role, label })
+}
+
+export async function deleteAdmin(hash: string): Promise<void> {
+  await deleteDoc(doc(db, 'adminPasswords', hash))
 }
