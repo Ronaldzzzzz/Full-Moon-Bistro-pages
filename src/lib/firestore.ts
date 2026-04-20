@@ -14,7 +14,7 @@ import {
   writeBatch,
 } from 'firebase/firestore'
 import { db } from './firebase'
-import type { MenuItem, MenuCategory, InventoryItem, Message, Reply } from '../types'
+import type { MenuItem, MenuCategory, InventoryItem, Message, Reply, LiveMusicConfig } from '../types'
 
 // ─── Menu Items ────────────────────────────────────────────────
 
@@ -158,4 +158,19 @@ export async function addAdmin(hash: string, role: 'owner' | 'staff', label: str
 
 export async function deleteAdmin(hash: string): Promise<void> {
   await deleteDoc(doc(db, 'adminPasswords', hash))
+}
+
+// ─── Live Music ────────────────────────────────────────────────
+
+export async function getLiveMusicConfig(): Promise<LiveMusicConfig | null> {
+  const docSnap = await getDoc(doc(db, 'config', 'liveMusic'))
+  if (!docSnap.exists()) return null
+  return docSnap.data() as LiveMusicConfig
+}
+
+export async function updateLiveMusicConfig(data: Partial<LiveMusicConfig>): Promise<void> {
+  await setDoc(doc(db, 'config', 'liveMusic'), {
+    ...data,
+    updatedAt: serverTimestamp()
+  }, { merge: true })
 }

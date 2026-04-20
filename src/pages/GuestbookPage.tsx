@@ -3,6 +3,7 @@ import type { Message } from '../types'
 import { getMessages } from '../lib/firestore'
 import MessageCard from '../components/guestbook/MessageCard'
 import MessageForm from '../components/guestbook/MessageForm'
+import LiveMusicBanner from '../components/LiveMusicBanner'
 
 export default function GuestbookPage() {
   const [messages, setMessages] = useState<Message[]>([])
@@ -23,6 +24,8 @@ export default function GuestbookPage() {
         <h2 className="font-serif text-[var(--color-gold-primary)] text-lg tracking-widest">✦ 留言板 ✦</h2>
         <div className="mt-2 h-px bg-gradient-to-r from-transparent via-[var(--color-border-gold)] to-transparent" />
       </div>
+
+      <LiveMusicBanner />
 
       <MessageForm onSubmitted={load} />
 

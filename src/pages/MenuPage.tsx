@@ -3,6 +3,7 @@ import type { MenuItem, MenuCategory } from '../types'
 import { getMenuItems } from '../lib/firestore'
 import CategoryTabs from '../components/menu/CategoryTabs'
 import MenuItemRow from '../components/menu/MenuItemRow'
+import LiveMusicBanner from '../components/LiveMusicBanner'
 
 export default function MenuPage() {
   const [items, setItems] = useState<MenuItem[]>([])
@@ -25,6 +26,8 @@ export default function MenuPage() {
         <p className="text-[var(--color-text-muted)] text-xs mt-1 tracking-wider">MOONLIGHT & MELODY</p>
         <div className="mt-2 h-px bg-gradient-to-r from-transparent via-[var(--color-border-gold)] to-transparent" />
       </div>
+
+      <LiveMusicBanner />
 
       {/* 分類頁籤 */}
       <CategoryTabs active={activeCategory} onChange={setActiveCategory} />

@@ -56,3 +56,9 @@ export interface AdminSession {
   role: 'owner' | 'staff'
   label: string
 }
+
+export interface LiveMusicConfig {
+  content: string
+  isActive: boolean
+  updatedAt: Timestamp
+}
