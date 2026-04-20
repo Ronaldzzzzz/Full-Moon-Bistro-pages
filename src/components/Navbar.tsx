@@ -12,7 +12,7 @@ export default function Navbar() {
     <nav className="border-b border-[var(--color-border-primary)] bg-[var(--color-bg-primary)]">
       <div className="max-w-4xl mx-auto px-4 h-12 flex items-center justify-between">
         <span className="font-serif text-[var(--color-gold-primary)] text-sm tracking-widest flex items-center gap-1">
-          <span className="animate-[moon-pulse_3s_infinite]">🌙</span>
+          <span className="animate-moon-pulse">🌙</span>
           FULL-MOON-BISTRO
           <span>🪕</span>
         </span>

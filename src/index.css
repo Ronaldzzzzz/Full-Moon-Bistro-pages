@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Noto+Serif+TC:wght@400;700&display=swap');
 
 @theme {
   --color-bg-primary: #2d1e12;
@@ -10,16 +11,24 @@
   --color-gold-light: #fff5bc;
   --color-text-primary: #e8d5b5;
   --color-text-muted: #a68b6d;
+  /* 新增暖色光暈 */
   --shadow-glow-warm: 0 0 15px rgba(244, 227, 142, 0.15);
-  --animate-moon-pulse: moon-pulse 3s infinite ease-in-out;
+  /* 極致平滑呼吸燈：2.5秒單程，來回共5秒，交替進行 */
+  --animate-moon-pulse: moon-pulse 2.5s ease-in-out infinite alternate;
   --color-available: #81c784;
   --color-soldout: #ef9a9a;
-  --font-serif: 'Georgia', 'Times New Roman', serif;
+  --font-serif: "Cinzel", "Noto Serif TC", serif;
 }
 
 @keyframes moon-pulse {
-  0%, 100% { filter: drop-shadow(0 0 2px #f4e38e); opacity: 0.8; }
-  50% { filter: drop-shadow(0 0 8px #f4e38e); opacity: 1; }
+  from { 
+    opacity: 0.6;
+    text-shadow: 0 0 2px rgba(244, 227, 142, 0.2);
+  }
+  to { 
+    opacity: 1;
+    text-shadow: 0 0 15px rgba(244, 227, 142, 0.9);
+  }
 }
 
 body {
@@ -27,30 +36,75 @@ body {
   color: var(--color-text-primary);
 }
 
-.wave-divider {
-  height: 2px;
-  background: linear-gradient(90deg, transparent, var(--color-border-gold), transparent);
+/* 統一流光動畫：絕對同步邏輯 */
+.text-shimmer,
+.wave-divider,
+.banner-shimmer::before {
+  background-size: 300% 100% !important;
+  background-repeat: no-repeat !important;
+  /* 方向反轉：從 100% 回到 0% */
+  animation: sync-shimmer 8s linear infinite !important;
+}
+
+@keyframes sync-shimmer {
+  0% { background-position: 100% 0; }
+  100% { background-position: 0% 0; }
+}
+
+.text-shimmer {
+  display: block;
+  width: 100%;
+  letter-spacing: 0.1em;
+  background-image: linear-gradient(
+    90deg,
+    var(--color-gold-primary) 0%,
+    var(--color-gold-primary) 33%,
+    #ffffff 50%,
+    var(--color-gold-primary) 67%,
+    var(--color-gold-primary) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent !important;
+  -webkit-text-fill-color: transparent !important;
+}
+
+.banner-shimmer {
   position: relative;
   overflow: hidden;
 }
 
-.wave-divider::after {
+/* 標題外框的掃描光暈 */
+.banner-shimmer::before {
   content: "";
   position: absolute;
-  top: 0;
-  left: -100%;
-  width: 200%;
-  height: 100%;
-  background: linear-gradient(90deg, 
-    transparent, 
-    var(--color-gold-primary), 
-    transparent
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    transparent 33%,
+    rgba(244, 227, 142, 0.6) 50%,
+    transparent 67%,
+    transparent 100%
   );
-  animation: wave-slide 4s infinite linear;
-  opacity: 0.3;
+  z-index: -1;
+  border-radius: inherit;
+  filter: blur(4px);
 }
 
-@keyframes wave-slide {
-  from { transform: translateX(0); }
-  to { transform: translateX(50%); }
+@utility wave-divider {
+  height: 3px; /* 稍微加粗 */
+  background-color: var(--color-border-gold);
+  opacity: 0.4;
+  background-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    transparent 33%,
+    var(--color-gold-light) 50%,
+    transparent 67%,
+    transparent 100%
+  );
 }

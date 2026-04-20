@@ -20,8 +20,8 @@ export default function GuestbookPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="text-center">
-        <h2 className="font-serif text-[var(--color-gold-primary)] text-lg tracking-widest">✦ 留言板 ✦</h2>
+      <div className="text-center p-6 border border-[var(--color-border-gold)] rounded bg-gradient-to-r from-[var(--color-bg-card)] to-[var(--color-bg-card-hover)] shadow-[var(--shadow-glow-warm)] banner-shimmer">
+        <h2 className="font-serif text-2xl md:text-3xl font-bold tracking-[0.3em] text-shimmer">✦ 留言板 ✦</h2>
         <div className="mt-2 wave-divider" />
       </div>
 

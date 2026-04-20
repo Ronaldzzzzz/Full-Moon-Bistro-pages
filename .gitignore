@@ -23,3 +23,8 @@ dist-ssr
 *.sln
 *.sw?
 .env
+
+# Ignore all markdown files
+*.md
+# But keep README.md
+!README.md

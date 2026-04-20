@@ -3,13 +3,21 @@ import Navbar from './components/Navbar'
 import MenuPage from './pages/MenuPage'
 import GuestbookPage from './pages/GuestbookPage'
 import AdminPage from './pages/AdminPage'
+import MoonPhaseBackground from './components/MoonPhaseBackground'
 
 export default function App() {
   return (
     <HashRouter>
-      <div className="min-h-screen" style={{ backgroundColor: '#1a1510' }}>
+      <div className="min-h-screen relative">
+        {/* 最底層：背景色 */}
+        <div className="fixed inset-0 bg-[var(--color-bg-primary)] z-[-2]" />
+        
+        {/* 中間層：月相背景 */}
+        <MoonPhaseBackground />
+        
+        {/* 最上層：導覽與內容 */}
         <Navbar />
-        <main className="max-w-4xl mx-auto px-4 py-6">
+        <main className="relative z-10 max-w-4xl mx-auto px-4 py-6">
           <Routes>
             <Route path="/" element={<MenuPage />} />
             <Route path="/guestbook" element={<GuestbookPage />} />
