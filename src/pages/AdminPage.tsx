@@ -6,8 +6,9 @@ import MenuManager from '../components/admin/MenuManager'
 import InventoryManager from '../components/admin/InventoryManager'
 import MessageManager from '../components/admin/MessageManager'
 import AdminManager from '../components/admin/AdminManager'
+import MusicManager from '../components/admin/MusicManager'
 
-type AdminTab = 'menu' | 'inventory' | 'messages' | 'admins'
+type AdminTab = 'menu' | 'inventory' | 'messages' | 'admins' | 'music'
 
 export default function AdminPage() {
   const [session, setSession] = useState<AdminSession | null>(getAdminSession)
@@ -28,6 +29,7 @@ export default function AdminPage() {
     { key: 'menu', label: '菜單管理' },
     { key: 'inventory', label: '食材庫存' },
     { key: 'messages', label: '留言管理' },
+    { key: 'music', label: '駐演看板' },
     { key: 'admins', label: '帳號管理', minRole: 'owner' },
   ]
 
@@ -69,6 +71,7 @@ export default function AdminPage() {
       {tab === 'menu' && <MenuManager />}
       {tab === 'inventory' && <InventoryManager />}
       {tab === 'messages' && <MessageManager />}
+      {tab === 'music' && <MusicManager />}
       {tab === 'admins' && session.role === 'owner' && <AdminManager />}
     </div>
   )
