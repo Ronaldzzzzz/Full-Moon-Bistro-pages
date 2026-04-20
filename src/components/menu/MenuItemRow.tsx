@@ -8,7 +8,7 @@ export default function MenuItemRow({ item }: Props) {
   return (
     <li
       role="listitem"
-      className={`flex items-center gap-4 bg-[#2a2015] border border-[#4a3820] rounded p-3 transition-colors hover:bg-[#342a1a] ${
+      className={`flex items-center gap-4 bg-[var(--color-bg-card)] border border-[var(--color-border-primary)] rounded p-3 transition-all hover:bg-[var(--color-bg-card-hover)] hover:shadow-[var(--shadow-glow-warm)] ${
         !item.available ? 'opacity-50' : ''
       }`}
     >

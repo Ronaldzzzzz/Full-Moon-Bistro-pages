@@ -33,7 +33,7 @@ export default function MessageCard({ message, onDelete }: Props) {
     : ''
 
   return (
-    <div className="bg-[#2a2015] border border-[#4a3820] rounded p-4">
+    <div className="bg-[var(--color-bg-card)] border border-[var(--color-border-primary)] rounded p-4 transition-all hover:bg-[var(--color-bg-card-hover)] hover:shadow-[var(--shadow-glow-warm)]">
       {/* 作者資訊 */}
       <div className="flex items-baseline gap-2 mb-2">
         <span className="text-[#c9a55a] font-semibold text-sm">
