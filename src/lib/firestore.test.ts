@@ -22,6 +22,7 @@ vi.mock('firebase/firestore', () => ({
   orderBy: vi.fn(),
   increment: vi.fn((n) => n),
   writeBatch: vi.fn(() => ({
+    set: vi.fn(),
     delete: vi.fn(),
     commit: vi.fn().mockResolvedValue(undefined),
   })),
@@ -69,6 +70,25 @@ describe('addMenuItem', () => {
     })
     expect(mocks.mockAddDoc).toHaveBeenCalledOnce()
     expect(id).toBe('new123')
+  })
+
+  it('傳入 ingredients 時，觸發 inventory 同步邏輯', async () => {
+    mocks.mockAddDoc.mockResolvedValue({ id: 'new123' })
+    mocks.mockGetDocs.mockResolvedValue(makeDocs([])) // 假設庫存為空
+
+    await addMenuItem({
+      category: 'drink',
+      name: '特製咖啡',
+      description: '',
+      price: 200,
+      imageUrl: '',
+      available: true,
+      order: 0,
+      ingredients: [{ id: 101, amount: 2 }]
+    })
+
+    // 驗證是否呼叫 getDocs 獲取庫存
+    expect(mocks.mockGetDocs).toHaveBeenCalled()
   })
 })
 

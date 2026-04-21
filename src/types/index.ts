@@ -21,6 +21,8 @@ export interface MenuItem {
   imageUrl: string
   available: boolean
   order: number
+  recipeId?: number
+  ingredients?: RecipeIngredient[]
 }
 
 export interface InventoryItem {
@@ -29,6 +31,19 @@ export interface InventoryItem {
   stock: number
   unit: string
   note: string
+  recipeIngredientId?: number
+}
+
+export interface RecipeIngredient {
+  id: number
+  amount: number
+}
+
+export interface Recipe {
+  id: number
+  name_zh: string
+  icon: string
+  ingredients: RecipeIngredient[]
 }
 
 export interface Reply {

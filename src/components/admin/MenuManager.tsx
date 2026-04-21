@@ -7,17 +7,20 @@ import {
   updateMenuItem,
   deleteMenuItem,
 } from '../../lib/firestore'
-import type { MenuItem, MenuCategory } from '../../types'
+import type { MenuItem, MenuCategory, Recipe } from '../../types'
 import { CATEGORY_LABELS, CATEGORY_ORDER } from '../../types'
+import recipesData from '../../assets/data/recipes.json'
 
 const EMPTY_FORM = {
   name: '',
   description: '',
   price: 0,
-  category: 'appetizer' as MenuCategory,
+  category: 'drink' as MenuCategory,
   imageUrl: '',
   available: true,
   order: 0,
+  recipeId: undefined as number | undefined,
+  ingredients: [] as MenuItem['ingredients'],
 }
 
 export default function MenuManager() {
@@ -28,6 +31,8 @@ export default function MenuManager() {
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [saving, setSaving] = useState(false)
   const [showForm, setShowForm] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState<Recipe[]>([])
 
   async function load() {
     setLoading(true)
@@ -40,8 +45,20 @@ export default function MenuManager() {
 
   function startEdit(item: MenuItem) {
     setEditing(item)
-    setForm({ name: item.name, description: item.description, price: item.price, category: item.category, imageUrl: item.imageUrl, available: item.available, order: item.order })
+    setForm({
+      name: item.name,
+      description: item.description,
+      price: item.price,
+      category: item.category,
+      imageUrl: item.imageUrl,
+      available: item.available,
+      order: item.order,
+      recipeId: item.recipeId,
+      ingredients: item.ingredients || []
+    })
     setImageFile(null)
+    setSearchQuery('')
+    setSearchResults([])
     setShowForm(true)
   }
 
@@ -49,7 +66,34 @@ export default function MenuManager() {
     setEditing(null)
     setForm({ ...EMPTY_FORM, order: items.length })
     setImageFile(null)
+    setSearchQuery('')
+    setSearchResults([])
     setShowForm(true)
+  }
+
+  function handleRecipeSearch(q: string) {
+    setSearchQuery(q)
+    if (!q.trim()) {
+      setSearchResults([])
+      return
+    }
+    const filtered = (recipesData as Recipe[]).filter(r =>
+      r.name_zh.toLowerCase().includes(q.toLowerCase())
+    )
+    setSearchResults(filtered.slice(0, 5))
+  }
+
+  function selectRecipe(recipe: Recipe) {
+    setForm({
+      ...form,
+      name: recipe.name_zh,
+      imageUrl: recipe.icon,
+      category: 'drink',
+      recipeId: recipe.id,
+      ingredients: recipe.ingredients
+    })
+    setSearchQuery('')
+    setSearchResults([])
   }
 
   async function handleSave(e: React.FormEvent) {
@@ -107,6 +151,33 @@ export default function MenuManager() {
       {showForm && (
         <form onSubmit={handleSave} className="bg-[#2a2015] border border-[#6a5030] rounded p-4 mb-6 flex flex-col gap-3">
           <h3 className="text-[#c9a55a] text-sm font-semibold">{editing ? '編輯品項' : '新增品項'}</h3>
+
+          {/* Recipe 搜尋匯入 */}
+          {!editing && (
+            <div className="relative">
+              <input
+                value={searchQuery}
+                onChange={(e) => handleRecipeSearch(e.target.value)}
+                placeholder="🔍 從 Recipe 搜尋並匯入..."
+                className="w-full bg-[#1a1510] border border-[#c9a55a]/30 rounded px-3 py-1.5 text-sm text-[#d4c090] placeholder-[#6a5030] focus:outline-none focus:border-[#c9a55a] transition-colors"
+              />
+              {searchResults.length > 0 && (
+                <div className="absolute z-10 w-full mt-1 bg-[#2a2015] border border-[#c9a55a]/30 rounded shadow-xl overflow-hidden">
+                  {searchResults.map((r) => (
+                    <button
+                      key={r.id}
+                      type="button"
+                      onClick={() => selectRecipe(r)}
+                      className="w-full flex items-center gap-3 px-3 py-2 hover:bg-[#3a2e18] transition-colors border-b border-[#4a3820] last:border-0"
+                    >
+                      <img src={r.icon} alt={r.name_zh} className="w-6 h-6 rounded" />
+                      <span className="text-sm text-[#d4c090]">{r.name_zh}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="grid grid-cols-2 gap-3">
             <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="品項名稱 *" required className="bg-[#1a1510] border border-[#4a3820] rounded px-3 py-1.5 text-sm text-[#d4c090] placeholder-[#6a5030] focus:outline-none focus:border-[#c9a55a]" />
