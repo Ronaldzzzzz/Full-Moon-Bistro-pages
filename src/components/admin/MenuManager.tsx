@@ -7,15 +7,17 @@ import {
   updateMenuItem,
   deleteMenuItem,
 } from '../../lib/firestore'
-import type { MenuItem, MenuCategory, Recipe } from '../../types'
+import type { MenuItem, MenuCategory } from '../../types'
 import { CATEGORY_LABELS, CATEGORY_ORDER } from '../../types'
-import recipesData from '../../assets/data/recipes.json'
+import ItemSearchBox from './ItemSearchBox'
+import { getBaseMaterials } from '../../lib/recipeUtils'
+import type { MasterItem, MasterRecipe } from '../../lib/recipeUtils'
 
 const EMPTY_FORM = {
   name: '',
   description: '',
   price: 0,
-  category: 'drink' as MenuCategory,
+  category: 'main' as MenuCategory,
   imageUrl: '',
   available: true,
   order: 0,
@@ -31,8 +33,11 @@ export default function MenuManager() {
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [saving, setSaving] = useState(false)
   const [showForm, setShowForm] = useState(false)
-  const [searchQuery, setSearchQuery] = useState('')
-  const [searchResults, setSearchResults] = useState<Recipe[]>([])
+
+  const [masterData, setMasterData] = useState<{
+    items: Record<number, MasterItem>;
+    recipes: Record<number, MasterRecipe>;
+  } | null>(null)
 
   async function load() {
     setLoading(true)
@@ -41,7 +46,26 @@ export default function MenuManager() {
     setLoading(false)
   }
 
-  useEffect(() => { load() }, [])
+  useEffect(() => { 
+    load() 
+    // Load master data for recursive ingredient resolution
+    async function loadMasterData() {
+      try {
+        const [itemsRes, recipesRes] = await Promise.all([
+          fetch('/data/master_items.json'),
+          fetch('/data/master_recipes.json')
+        ])
+        const [items, recipes] = await Promise.all([
+          itemsRes.json(),
+          recipesRes.json()
+        ])
+        setMasterData({ items, recipes })
+      } catch (err) {
+        console.error('Failed to load master data:', err)
+      }
+    }
+    loadMasterData()
+  }, [])
 
   function startEdit(item: MenuItem) {
     setEditing(item)
@@ -57,8 +81,6 @@ export default function MenuManager() {
       ingredients: item.ingredients || []
     })
     setImageFile(null)
-    setSearchQuery('')
-    setSearchResults([])
     setShowForm(true)
   }
 
@@ -66,34 +88,28 @@ export default function MenuManager() {
     setEditing(null)
     setForm({ ...EMPTY_FORM, order: items.length })
     setImageFile(null)
-    setSearchQuery('')
-    setSearchResults([])
     setShowForm(true)
   }
 
-  function handleRecipeSearch(q: string) {
-    setSearchQuery(q)
-    if (!q.trim()) {
-      setSearchResults([])
-      return
+  function handleSelectItem(id: number, item: MasterItem) {
+    let ingredients: MenuItem['ingredients'] = []
+    
+    if (masterData && item.r) {
+      const materials = getBaseMaterials(id, masterData.items, masterData.recipes)
+      ingredients = Object.entries(materials).map(([mId, mAmount]) => ({
+        id: Number(mId),
+        amount: mAmount
+      }))
     }
-    const filtered = (recipesData as Recipe[]).filter(r =>
-      r.name_zh.toLowerCase().includes(q.toLowerCase())
-    )
-    setSearchResults(filtered.slice(0, 5))
-  }
 
-  function selectRecipe(recipe: Recipe) {
     setForm({
       ...form,
-      name: recipe.name_zh,
-      imageUrl: recipe.icon,
-      category: 'drink',
-      recipeId: recipe.id,
-      ingredients: recipe.ingredients
+      name: item.n,
+      imageUrl: `https://xivapi.com${item.i}`,
+      category: 'main', // Default to main
+      recipeId: item.r,
+      ingredients: ingredients
     })
-    setSearchQuery('')
-    setSearchResults([])
   }
 
   async function handleSave(e: React.FormEvent) {
@@ -152,31 +168,9 @@ export default function MenuManager() {
         <form onSubmit={handleSave} className="bg-[#2a2015] border border-[#6a5030] rounded p-4 mb-6 flex flex-col gap-3">
           <h3 className="text-[#c9a55a] text-sm font-semibold">{editing ? '編輯品項' : '新增品項'}</h3>
 
-          {/* Recipe 搜尋匯入 */}
+          {/* 全物品搜尋匯入 */}
           {!editing && (
-            <div className="relative">
-              <input
-                value={searchQuery}
-                onChange={(e) => handleRecipeSearch(e.target.value)}
-                placeholder="🔍 從 Recipe 搜尋並匯入..."
-                className="w-full bg-[#1a1510] border border-[#c9a55a]/30 rounded px-3 py-1.5 text-sm text-[#d4c090] placeholder-[#6a5030] focus:outline-none focus:border-[#c9a55a] transition-colors"
-              />
-              {searchResults.length > 0 && (
-                <div className="absolute z-10 w-full mt-1 bg-[#2a2015] border border-[#c9a55a]/30 rounded shadow-xl overflow-hidden">
-                  {searchResults.map((r) => (
-                    <button
-                      key={r.id}
-                      type="button"
-                      onClick={() => selectRecipe(r)}
-                      className="w-full flex items-center gap-3 px-3 py-2 hover:bg-[#3a2e18] transition-colors border-b border-[#4a3820] last:border-0"
-                    >
-                      <img src={r.icon} alt={r.name_zh} className="w-6 h-6 rounded" />
-                      <span className="text-sm text-[#d4c090]">{r.name_zh}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+            <ItemSearchBox onSelect={handleSelectItem} />
           )}
 
           <div className="grid grid-cols-2 gap-3">

@@ -114,3 +114,19 @@ body {
     transparent 100%
   );
 }
+
+@layer utilities {
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: #1a1510;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #4a3820;
+    border-radius: 3px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #6a5030;
+  }
+}
