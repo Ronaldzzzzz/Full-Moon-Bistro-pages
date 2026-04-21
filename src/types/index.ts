@@ -16,6 +16,7 @@ export interface MenuItem {
   id: string
   category: MenuCategory
   name: string
+  alias?: string
   description: string
   price: number
   imageUrl: string

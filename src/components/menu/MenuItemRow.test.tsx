@@ -33,4 +33,11 @@ describe('MenuItemRow', () => {
     const row = screen.getByRole('listitem')
     expect(row).toHaveClass('opacity-50')
   })
+
+  it('當存在別名 (alias) 時，優先顯示別名', () => {
+    const itemWithAlias = { ...mockItem, alias: '別名標題' }
+    render(<MenuItemRow item={itemWithAlias} />)
+    expect(screen.getByText('別名標題')).toBeInTheDocument()
+    expect(screen.queryByText('星芒沙拉')).not.toBeInTheDocument()
+  })
 })
