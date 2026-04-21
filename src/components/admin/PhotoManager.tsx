@@ -32,7 +32,8 @@ export default function PhotoManager() {
     setUploading(true)
     setError(null)
     try {
-      const storageRef = ref(storage, `promotional-photos/${Date.now()}_${file.name}`)
+      const ext = file.name.split('.').pop() ?? 'jpg'
+      const storageRef = ref(storage, `promotional-photos/${Date.now()}.${ext}`)
       await uploadBytes(storageRef, file)
       const url = await getDownloadURL(storageRef)
       const newUrls = [...photoUrls, url]

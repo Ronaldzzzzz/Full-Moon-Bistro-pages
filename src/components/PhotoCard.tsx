@@ -5,12 +5,12 @@ interface Props {
   photoUrls: string[]
 }
 
+const rotations = ['rotate-[-2deg]', 'rotate-[2deg]', 'rotate-[-1.5deg]', 'rotate-[1.5deg]']
+
 export default function PhotoCard({ photoUrls }: Props) {
   const [modalIndex, setModalIndex] = useState<number | null>(null)
 
   if (photoUrls.length === 0) return null
-
-  const rotations = ['rotate-[-2deg]', 'rotate-[2deg]', 'rotate-[-1.5deg]', 'rotate-[1.5deg]']
 
   return (
     <>
