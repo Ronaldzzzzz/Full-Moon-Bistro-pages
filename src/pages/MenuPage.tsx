@@ -42,11 +42,11 @@ export default function MenuPage() {
             grouped[cat].length > 0 && (
               <section key={cat}>
                 <div className="flex items-center gap-3 mb-4">
-                  <h2 className="text-[var(--color-gold-primary)] font-serif text-sm tracking-widest uppercase">
+                  <h2 className="text-[var(--color-gold-primary)] font-serif text-3xl tracking-widest uppercase">
                     {CATEGORY_LABELS[cat]}
                   </h2>
                   {cat === 'drink' && (
-                    <span className="text-[var(--color-text-muted)] text-[10px] tracking-tighter">
+                    <span className="text-[var(--color-text-muted)] text-md tracking-tighter">
                       * 點飲料一杯即附上店長的隨機餐點
                     </span>
                   )}

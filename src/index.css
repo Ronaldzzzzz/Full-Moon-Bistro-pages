@@ -38,7 +38,7 @@ body {
 }
 
 .content-text {
-  font-size: 1.1rem;
+  /* 移除 font-size，避免覆蓋 Tailwind 類別 */
   letter-spacing: 0.05em;
 }
 

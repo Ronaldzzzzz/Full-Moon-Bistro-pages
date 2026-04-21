@@ -27,8 +27,8 @@ export default function MenuItemRow({ item }: Props) {
 
       {/* 名稱 + 描述 */}
       <div className="flex-1 min-w-0">
-        <div className="text-[#d4c090] font-semibold text-base content-text">{item.name}</div>
-        <div className="text-[#9a8a70] text-sm mt-0.5 line-clamp-2 content-text">{item.description}</div>
+        <div className="text-[#d4c090] font-bold text-xl content-text tracking-wide">{item.name}</div>
+        <div className="text-[var(--color-text-muted)] text-md mt-1 line-clamp-2 opacity-70 leading-relaxed">{item.description}</div>
       </div>
 
       {/* 價格 + 狀態 */}
