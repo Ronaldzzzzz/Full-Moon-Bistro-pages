@@ -86,3 +86,19 @@ export interface NoticeConfig {
   isActive: boolean
   updatedAt: any
 }
+
+// 點餐訂單
+export interface Order {
+  id: string
+  customerName: string        // 客人 ID 名稱
+  items: { menuItemId: string; menuItemName: string; quantity: number }[]
+  timestamp: Timestamp
+  note?: string
+}
+
+// 全局設定
+export interface GlobalSettings {
+  address: string             // 餐廳地址（顯示於 Navbar）
+  orderCooldownMinutes: number // 點餐冷卻分鐘數（預設 30）
+  photoUrls: string[]         // 宣傳全身照 URL 陣列
+}

@@ -14,7 +14,7 @@ import {
   writeBatch,
 } from 'firebase/firestore'
 import { db } from './firebase'
-import type { MenuItem, InventoryItem, Message, Reply, LiveMusicConfig, NoticeConfig } from '../types'
+import type { MenuItem, InventoryItem, Message, Reply, LiveMusicConfig, NoticeConfig, Order, GlobalSettings } from '../types'
 
 // ─── Menu Items ────────────────────────────────────────────────
 
@@ -298,4 +298,38 @@ export async function addNotice(data: Omit<NoticeConfig, 'id' | 'updatedAt'>): P
 
 export async function deleteNotice(id: string): Promise<void> {
   await deleteDoc(doc(db, 'notices', id))
+}
+
+// ─── Orders ────────────────────────────────────────────────────
+
+export async function getOrders(): Promise<Order[]> {
+  const q = query(collection(db, 'orders'), orderBy('timestamp', 'desc'))
+  const snap = await getDocs(q)
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() } as Order))
+}
+
+export async function addOrder(data: Omit<Order, 'id'>): Promise<string> {
+  const ref = await addDoc(collection(db, 'orders'), {
+    ...data,
+    timestamp: serverTimestamp(),
+  })
+  return ref.id
+}
+
+export async function deleteOrder(id: string): Promise<void> {
+  await deleteDoc(doc(db, 'orders', id))
+}
+
+// ─── Global Settings ────────────────────────────────────────────
+
+export async function getGlobalSettings(): Promise<GlobalSettings> {
+  const docSnap = await getDoc(doc(db, 'settings', 'global'))
+  if (!docSnap.exists()) {
+    return { address: '', orderCooldownMinutes: 30, photoUrls: [] }
+  }
+  return docSnap.data() as GlobalSettings
+}
+
+export async function updateGlobalSettings(data: Partial<GlobalSettings>): Promise<void> {
+  await setDoc(doc(db, 'settings', 'global'), data, { merge: true })
 }
