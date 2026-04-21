@@ -1,6 +1,16 @@
+import { useEffect, useState } from 'react'
 import { NavLink } from 'react-router-dom'
+import { getGlobalSettings } from '../lib/firestore'
 
 export default function Navbar() {
+  const [address, setAddress] = useState<string>('')
+
+  useEffect(() => {
+    getGlobalSettings()
+      .then(s => setAddress(s.address ?? ''))
+      .catch(() => {/* 靜默失敗，不顯示地址 */})
+  }, [])
+
   const linkClass = ({ isActive }: { isActive: boolean }) =>
     `px-3 py-1 text-sm transition-colors ${
       isActive
@@ -10,12 +20,19 @@ export default function Navbar() {
 
   return (
     <nav className="border-b border-[var(--color-border-primary)] bg-[var(--color-bg-primary)]">
-      <div className="max-w-4xl mx-auto px-4 h-12 flex items-center justify-between">
-        <span className="font-serif text-[var(--color-gold-primary)] text-sm tracking-widest flex items-center gap-1">
-          <span className="animate-moon-pulse">🌙</span>
-          FULL-MOON-BISTRO
-          <span>🪕</span>
-        </span>
+      <div className="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between">
+        <div className="flex flex-col justify-center">
+          <span className="font-serif text-[var(--color-gold-primary)] text-xl tracking-widest flex items-center gap-1">
+            <span className="animate-moon-pulse">🌙</span>
+            FULL-MOON-BISTRO
+            <span>🪕</span>
+          </span>
+          {address && (
+            <span className="text-[11px] text-[#9a8a70] tracking-wide leading-tight mt-0.5">
+              📍 {address}
+            </span>
+          )}
+        </div>
         <div className="flex items-center gap-1">
           <NavLink to="/" className={linkClass} end>
             菜單

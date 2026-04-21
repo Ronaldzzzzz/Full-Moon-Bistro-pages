@@ -8,9 +8,9 @@ import MessageManager from '../components/admin/MessageManager'
 import AdminManager from '../components/admin/AdminManager'
 import NoticeManager from '../components/admin/NoticeManager'
 import OrderManager from '../components/admin/OrderManager'
-import PhotoManager from '../components/admin/PhotoManager'
+import GlobalSettingsManager from '../components/admin/GlobalSettingsManager'
 
-type AdminTab = 'menu' | 'inventory' | 'messages' | 'admins' | 'notice' | 'orders' | 'photos'
+type AdminTab = 'menu' | 'inventory' | 'messages' | 'admins' | 'notice' | 'orders' | 'settings'
 
 export default function AdminPage() {
   const [session, setSession] = useState<AdminSession | null>(getAdminSession)
@@ -33,7 +33,7 @@ export default function AdminPage() {
     { key: 'messages', label: '留言管理' },
     { key: 'notice', label: '注意事項' },
     { key: 'orders', label: '點餐管理' },
-    { key: 'photos', label: '宣傳照管理' },
+    { key: 'settings', label: '系統設定' },
     { key: 'admins', label: '帳號管理', minRole: 'owner' },
   ]
 
@@ -77,7 +77,7 @@ export default function AdminPage() {
       {tab === 'messages' && <MessageManager />}
       {tab === 'notice' && <NoticeManager />}
       {tab === 'orders' && <OrderManager />}
-      {tab === 'photos' && <PhotoManager />}
+      {tab === 'settings' && <GlobalSettingsManager />}
       {tab === 'admins' && session.role === 'owner' && <AdminManager />}
     </div>
   )
