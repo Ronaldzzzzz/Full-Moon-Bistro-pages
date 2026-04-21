@@ -6,6 +6,7 @@ export default function NoticeManager() {
   const [notice, setNotice] = useState<NoticeConfig | null>(null)
   const [emoji, setEmoji] = useState('📢')
   const [linesText, setLinesText] = useState('')
+  const [isActive, setIsActive] = useState(true)
   const [saving, setSaving] = useState(false)
   const [loading, setLoading] = useState(true)
 
@@ -15,6 +16,7 @@ export default function NoticeManager() {
         const active = notices[0] // Get the most recent one
         setNotice(active)
         setEmoji(active.emoji)
+        setIsActive(active.isActive !== false) // Default to true
         setLinesText(active.lines.join('\n'))
       }
       setLoading(false)
@@ -26,10 +28,10 @@ export default function NoticeManager() {
     const lines = linesText.split('\n').map(l => l.trim()).filter(Boolean)
     try {
       if (notice) {
-        await updateNotice(notice.id, { emoji, lines })
+        await updateNotice(notice.id, { emoji, lines, isActive })
       } else {
-        const id = await addNotice({ emoji, lines })
-        setNotice({ id, emoji, lines, updatedAt: new Date() } as NoticeConfig)
+        const id = await addNotice({ emoji, lines, isActive })
+        setNotice({ id, emoji, lines, isActive, updatedAt: new Date() } as NoticeConfig)
       }
       alert('更新成功！')
     } catch (err) {
@@ -44,7 +46,18 @@ export default function NoticeManager() {
 
   return (
     <div className="bg-[var(--color-bg-card)] border border-[var(--color-border-gold)] rounded p-4 flex flex-col gap-4 shadow-[var(--shadow-glow-warm)]">
-      <h3 className="text-[var(--color-gold-primary)] text-sm font-semibold tracking-widest">注意事項看板管理</h3>
+      <div className="flex items-center justify-between">
+        <h3 className="text-[var(--color-gold-primary)] text-sm font-semibold tracking-widest">注意事項看板管理</h3>
+        <label className="flex items-center gap-2 text-xs text-[var(--color-text-muted)] cursor-pointer">
+          <input
+            type="checkbox"
+            checked={isActive}
+            onChange={(e) => setIsActive(e.target.checked)}
+            className="accent-[var(--color-gold-primary)]"
+          />
+          顯示看板
+        </label>
+      </div>
       
       <div className="flex flex-col gap-1">
         <label className="text-xs text-[var(--color-text-muted)]">看板圖標 (Emoji)</label>

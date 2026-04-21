@@ -14,16 +14,18 @@ export default function NoticeBanner() {
 
   useEffect(() => {
     getNotices()
-      .then(setNotices)
+      .then(data => {
+        // 只保留 isActive 為 true 的公告 (或者是舊資料中沒有 isActive 欄位的)
+        setNotices(data.filter(n => n.isActive !== false))
+      })
       .finally(() => setLoading(false))
   }, [])
 
-  const activeNotice = notices[0] // 取最新的一筆
-  
-  if (loading) return null
+  if (loading || notices.length === 0) return null
 
-  const displayContent = activeNotice ? activeNotice.lines.join(' | ') : DEFAULT_NOTICES.join(' | ')
-  const displayEmoji = activeNotice?.emoji || '📢'
+  const activeNotice = notices[0] // 取最新的一筆
+  const displayContent = activeNotice.lines.join(' | ')
+  const displayEmoji = activeNotice.emoji || '📢'
 
   return (
     <div className="mb-6 p-3 rounded border border-[var(--color-gold-primary)]/30 bg-[var(--color-bg-card)] shadow-[var(--shadow-glow-warm)] flex items-center gap-3">

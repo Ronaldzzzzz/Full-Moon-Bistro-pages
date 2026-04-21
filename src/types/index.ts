@@ -83,5 +83,6 @@ export interface NoticeConfig {
   id: string
   emoji: string
   lines: string[]
+  isActive: boolean
   updatedAt: any
 }
