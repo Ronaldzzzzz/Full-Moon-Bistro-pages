@@ -18,11 +18,11 @@ export default function NoticeBanner() {
       .finally(() => setLoading(false))
   }, [])
 
-  const activeNotice = notices.find(n => n.isActive)
+  const activeNotice = notices[0] // 取最新的一筆
   
   if (loading) return null
 
-  const displayContent = activeNotice?.content || DEFAULT_NOTICES.join(' | ')
+  const displayContent = activeNotice ? activeNotice.lines.join(' | ') : DEFAULT_NOTICES.join(' | ')
   const displayEmoji = activeNotice?.emoji || '📢'
 
   return (

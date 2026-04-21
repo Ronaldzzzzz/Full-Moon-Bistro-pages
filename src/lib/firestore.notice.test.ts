@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { getNotices, addNotice, updateNotice } from './firestore'
+import { addNotice } from './firestore'
 
 const mocks = vi.hoisted(() => ({
   mockGetDocs: vi.fn(),
