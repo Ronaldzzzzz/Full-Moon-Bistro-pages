@@ -1,18 +1,21 @@
 import { useState, useEffect, useCallback } from 'react'
 import type { MenuItem } from '../types'
-import { getMenuItems, addOrder, getGlobalSettings } from '../lib/firestore'
+import { addOrder, getGlobalSettings } from '../lib/firestore'
 
 const LS_KEY = 'lastOrderTime'
 
-export default function OrderForm() {
-  const [menuItems, setMenuItems] = useState<MenuItem[]>([])
+interface OrderFormProps {
+  menuItems: MenuItem[]
+}
+
+export default function OrderForm({ menuItems }: OrderFormProps) {
   const [cooldownMinutes, setCooldownMinutes] = useState(30)
   const [customerName, setCustomerName] = useState('')
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [submitting, setSubmitting] = useState(false)
   const [success, setSuccess] = useState(false)
   const [remainingMs, setRemainingMs] = useState(0)
-  const [loadingMenu, setLoadingMenu] = useState(true)
+  const [loadingSettings, setLoadingSettings] = useState(true)
 
   // 計算剩餘冷卻時間（毫秒）
   const calcRemaining = useCallback((cooldownMs: number): number => {
@@ -22,15 +25,18 @@ export default function OrderForm() {
     return Math.max(0, cooldownMs - elapsed)
   }, [])
 
-  // 載入菜單與設定
+  // 載入設定
   useEffect(() => {
-    Promise.all([getMenuItems(), getGlobalSettings()])
-      .then(([items, settings]) => {
-        setMenuItems(items.filter(i => i.available !== false))
+    getGlobalSettings()
+      .then(settings => {
         setCooldownMinutes(settings.orderCooldownMinutes)
         setRemainingMs(calcRemaining(settings.orderCooldownMinutes * 60 * 1000))
       })
-      .finally(() => setLoadingMenu(false))
+      .catch(err => {
+        console.error('無法載入點餐設定:', err)
+        // orderCooldownMinutes 已有預設值 30，fallback 到預設即可
+      })
+      .finally(() => setLoadingSettings(false))
   }, [calcRemaining])
 
   // 每秒更新倒數
@@ -106,8 +112,8 @@ export default function OrderForm() {
         {/* 菜單勾選 */}
         <div className="flex flex-col gap-1">
           <label className="text-xs text-[#9a8a70] tracking-wide">選擇品項（至少一項）</label>
-          {loadingMenu ? (
-            <p className="text-[#9a8a70] text-sm py-2">載入菜單中…</p>
+          {loadingSettings ? (
+            <p className="text-[#9a8a70] text-sm py-2">載入設定中…</p>
           ) : menuItems.length === 0 ? (
             <p className="text-[#9a8a70] text-sm py-2">目前無可點餐品項</p>
           ) : (

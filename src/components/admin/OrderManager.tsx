@@ -6,12 +6,17 @@ export default function OrderManager() {
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
   const [deleting, setDeleting] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   async function load() {
     setLoading(true)
+    setError(null)
     try {
       const data = await getOrders()
       setOrders(data)
+    } catch (err) {
+      console.error('載入訂單失敗:', err)
+      setError('載入訂單失敗，請重新整理。')
     } finally {
       setLoading(false)
     }
@@ -25,6 +30,9 @@ export default function OrderManager() {
     try {
       await deleteOrder(id)
       setOrders(prev => prev.filter(o => o.id !== id))
+    } catch (err) {
+      console.error('刪除訂單失敗:', err)
+      alert('刪除失敗，請稍後再試。')
     } finally {
       setDeleting(null)
     }
@@ -54,6 +62,12 @@ export default function OrderManager() {
           重新整理
         </button>
       </div>
+
+      {error && (
+        <p className="text-[#ef9a9a] text-sm text-center py-2 border border-[#6a3030] rounded bg-[#2a1515] px-3">
+          {error}
+        </p>
+      )}
 
       {loading ? (
         <p className="text-[#9a8a70] text-sm text-center py-8">載入中…</p>

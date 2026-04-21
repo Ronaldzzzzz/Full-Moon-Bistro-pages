@@ -64,7 +64,7 @@ export default function MenuPage() {
         )}
       </div>
 
-      <OrderForm />
+      <OrderForm menuItems={items.filter(i => i.available !== false)} />
     </div>
   )
 }
