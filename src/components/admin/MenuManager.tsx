@@ -80,7 +80,7 @@ export default function MenuManager() {
       imageUrl: item.imageUrl,
       available: item.available,
       order: item.order,
-      recipeId: item.recipeId,
+      recipeId: item.recipeId || undefined, // 確保為 undefined 或有效 ID
       ingredients: item.ingredients || []
     })
 
@@ -111,9 +111,7 @@ export default function MenuManager() {
     if (masterData && masterData.recipes[id]) {
       tree = getRecipeTree(id, 1, masterData.items, masterData.recipes)
       
-      // 遞迴收集所有非水晶類 (ID 2-19) 的素材 ID
       const collectValidIds = (node: RecipeTreeNode) => {
-        // 排除 ID 2~19
         const isCrystal = node.id >= 2 && node.id <= 19
         if (!isCrystal && node.id !== id) {
           selectedIds.add(node.id)
