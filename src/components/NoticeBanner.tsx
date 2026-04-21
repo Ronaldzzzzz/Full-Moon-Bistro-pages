@@ -2,12 +2,6 @@ import { useEffect, useState } from 'react'
 import { getNotices } from '../lib/firestore'
 import type { NoticeConfig } from '../types'
 
-const DEFAULT_NOTICES = [
-  '點飲料一杯即附上店長的隨機餐點',
-  '飲品可外帶，但餐點恕不外帶',
-  '請尊重其他客人。如果發現嚴重騷擾其他客人，本店恕不接待。'
-]
-
 export default function NoticeBanner() {
   const [notices, setNotices] = useState<NoticeConfig[]>([])
   const [loading, setLoading] = useState(true)

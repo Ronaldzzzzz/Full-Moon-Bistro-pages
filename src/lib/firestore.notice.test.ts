@@ -32,6 +32,7 @@ describe('Notices Firestore API', () => {
     const id = await addNotice({
       emoji: '📢',
       lines: ['Line 1', 'Line 2'],
+      isActive: true,
     })
     expect(mocks.mockAddDoc).toHaveBeenCalledWith(
       expect.objectContaining({ path: 'notices' }),
