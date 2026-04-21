@@ -34,22 +34,22 @@ export function getBaseMaterials(
   result: Record<number, number> = {},
   visited: Set<number> = new Set()
 ): Record<number, number> {
-  // 防範循環依賴 (FFXIV 雖少見，但為求嚴謹)
+  // 防範循環依賴
   if (visited.has(itemId)) return result;
   
   const item = items[itemId];
   if (!item) return result;
 
-  // 如果該物品有配方，則繼續向下拆解其成分
-  if (item.r && recipes[item.r]) {
+  // 直接以 itemId 查詢配方
+  if (recipes[itemId]) {
     visited.add(itemId);
-    const recipe = recipes[item.r];
+    const recipe = recipes[itemId];
     for (const ing of recipe.ings) {
       getBaseMaterials(ing.i, ing.a * amount, items, recipes, result, visited);
     }
     visited.delete(itemId);
   } else {
-    // 該物品已無配方，視為最底層素材，記錄其總需求數量
+    // 該物品已無配方，視為最底層素材
     result[itemId] = (result[itemId] || 0) + amount;
   }
 
@@ -58,13 +58,6 @@ export function getBaseMaterials(
 
 /**
  * 遞迴獲取該物品的所有素材，若素材本身也有配方，則將其 ingredients 展開為 RecipeTreeNode[]。
- * 
- * @param itemId 目標物品 ID
- * @param amount 需求數量
- * @param items 物品主資料
- * @param recipes 配方主資料
- * @param visited 用於防範循環依賴
- * @returns 樹狀結構的配方節點
  */
 export function getRecipeTree(
   itemId: number,
@@ -84,12 +77,13 @@ export function getRecipeTree(
   if (visited.has(itemId)) return node;
 
   // 如果該物品有配方，則展開其成分
-  if (item && item.r && recipes[item.r]) {
+  if (recipes[itemId]) {
     visited.add(itemId);
-    const recipe = recipes[item.r];
+    const recipe = recipes[itemId];
     node.ingredients = recipe.ings.map((ing) =>
       getRecipeTree(ing.i, ing.a * amount, items, recipes, new Set(visited))
     );
+    visited.delete(itemId);
   }
 
   return node;

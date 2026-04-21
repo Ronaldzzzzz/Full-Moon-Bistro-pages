@@ -29,7 +29,7 @@ export async function addMenuItem(
 ): Promise<string> {
   const ref = await addDoc(collection(db, 'menuItems'), data)
   if (data.ingredients && data.ingredients.length > 0) {
-    await syncInventoryFromIngredients(data.ingredients)
+    await syncInventoryFromIngredients(data.name, data.ingredients)
   }
   return ref.id
 }
@@ -40,11 +40,13 @@ export async function updateMenuItem(
 ): Promise<void> {
   await updateDoc(doc(db, 'menuItems', id), data)
   if (data.ingredients && data.ingredients.length > 0) {
-    await syncInventoryFromIngredients(data.ingredients)
+    // 獲取目前的名稱，如果 data 沒給就從既有資料抓 (這裡簡化為如果有傳 name 就用新的)
+    const name = data.name || (await getMenuItems()).find(i => i.id === id)?.name || '未知品項'
+    await syncInventoryFromIngredients(name, data.ingredients)
   }
 }
 
-async function syncInventoryFromIngredients(ingredients: MenuItem['ingredients']): Promise<void> {
+async function syncInventoryFromIngredients(itemName: string, ingredients: MenuItem['ingredients']): Promise<void> {
   if (!ingredients || ingredients.length === 0) return
   const inventoryItems = await getInventoryItems()
   const batch = writeBatch(db)
@@ -77,8 +79,7 @@ async function syncInventoryFromIngredients(ingredients: MenuItem['ingredients']
       const newItemData: any = {
         name: realName,
         stock: 0,
-        unit: '份',
-        note: '來自 Teamcraft 自動匯入',
+        note: `${itemName} 需求 ${ing.amount} 個`,
         recipeIngredientId: ing.id,
       }
       if (iconPath) newItemData.icon = iconPath
@@ -86,7 +87,7 @@ async function syncInventoryFromIngredients(ingredients: MenuItem['ingredients']
       batch.set(newRef, newItemData)
       hasOps = true
     } else {
-      // 若已存在但資訊不全 (如舊名稱)，則更新
+      // 若已存在但資訊不全，則更新。備註若原本是自動匯入的也可以更新。
       const updates: any = {}
       let needsUpdate = false
 
@@ -100,6 +101,12 @@ async function syncInventoryFromIngredients(ingredients: MenuItem['ingredients']
       }
       if (existingItem.recipeIngredientId !== ing.id) {
         updates.recipeIngredientId = ing.id
+        needsUpdate = true
+      }
+      
+      // 更新備註以顯示最新的品項關聯
+      if (!existingItem.note || existingItem.note.includes('自動匯入')) {
+        updates.note = `${itemName} 需求 ${ing.amount} 個`
         needsUpdate = true
       }
 
@@ -142,6 +149,15 @@ export async function updateInventoryItem(
 
 export async function deleteInventoryItem(id: string): Promise<void> {
   await deleteDoc(doc(db, 'inventory', id))
+}
+
+export async function deleteInventoryItems(ids: string[]): Promise<void> {
+  if (ids.length === 0) return
+  const batch = writeBatch(db)
+  ids.forEach(id => {
+    batch.delete(doc(db, 'inventory', id))
+  })
+  await batch.commit()
 }
 
 // ─── Messages ──────────────────────────────────────────────────

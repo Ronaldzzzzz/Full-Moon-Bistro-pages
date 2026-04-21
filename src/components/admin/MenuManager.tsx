@@ -17,7 +17,7 @@ const EMPTY_FORM = {
   alias: '',
   description: '',
   price: 0,
-  category: 'main' as MenuCategory,
+  category: 'drink' as MenuCategory,
   imageUrl: '',
   available: true,
   order: 0,
@@ -33,13 +33,14 @@ export default function MenuManager() {
   const [saving, setSaving] = useState(false)
   const [showForm, setShowForm] = useState(false)
 
-  const [recipeTree, setRecipeTree] = useState<RecipeTreeNode | null>(null)
-  const [selectedIngredientIds, setSelectedIngredientIds] = useState<Set<number>>(new Set())
-
   const [masterData, setMasterData] = useState<{
     items: Record<number, MasterItem>;
     recipes: Record<number, MasterRecipe>;
   } | null>(null)
+
+  // 樹狀勾選狀態
+  const [recipeTree, setRecipeTree] = useState<RecipeTreeNode | null>(null)
+  const [selectedIngredientIds, setSelectedIngredientIds] = useState<Set<number>>(new Set())
 
   async function load() {
     setLoading(true)
@@ -50,7 +51,6 @@ export default function MenuManager() {
 
   useEffect(() => { 
     load() 
-    // Load master data for recursive ingredient resolution
     async function loadMasterData() {
       try {
         const [itemsRes, recipesRes] = await Promise.all([
@@ -84,15 +84,10 @@ export default function MenuManager() {
       ingredients: item.ingredients || []
     })
 
-    // Initialize recipe tree for editing if it exists
     if (masterData && item.recipeId) {
-      // Find the itemId that corresponds to this recipeId
-      const itemId = Object.entries(masterData.items).find(([_, info]) => info.r === item.recipeId)?.[0]
-      if (itemId) {
-        const tree = getRecipeTree(Number(itemId), 1, masterData.items, masterData.recipes)
-        setRecipeTree(tree)
-        setSelectedIngredientIds(new Set(item.ingredients?.map(ing => ing.id) || []))
-      }
+      const tree = getRecipeTree(item.recipeId, 1, masterData.items, masterData.recipes)
+      setRecipeTree(tree)
+      setSelectedIngredientIds(new Set(item.ingredients?.map(ing => ing.id) || []))
     } else {
       setRecipeTree(null)
       setSelectedIngredientIds(new Set())
@@ -110,68 +105,48 @@ export default function MenuManager() {
   }
 
   function handleSelectItem(id: number, item: MasterItem) {
-    let ingredients: MenuItem['ingredients'] = []
     let tree: RecipeTreeNode | null = null
-    const selectedIds = new Set<number>()
     
-    if (masterData && item.r) {
+    if (masterData && masterData.recipes[id]) {
       tree = getRecipeTree(id, 1, masterData.items, masterData.recipes)
-      
-      // Default: select all ingredients in the tree
-      const collectIds = (node: RecipeTreeNode) => {
-        if (node.id !== id) selectedIds.add(node.id)
-        node.ingredients?.forEach(collectIds)
-      }
-      tree.ingredients?.forEach(collectIds)
-
-      // Flatten for the form state (all selected by default)
-      ingredients = Array.from(selectedIds).map(sId => {
-        // Need to find amount from tree... this is a bit tricky if same item appears multiple times
-        // but syncInventoryFromIngredients handles it by recipeIngredientId.
-        // Let's just collect all selected nodes with their amounts.
-        let amount = 0
-        const findAmount = (node: RecipeTreeNode) => {
-          if (node.id === sId) amount += node.amount
-          node.ingredients?.forEach(findAmount)
-        }
-        findAmount(tree!)
-        return { id: sId, amount }
-      })
     }
-
-    setRecipeTree(tree)
-    setSelectedIngredientIds(selectedIds)
 
     setForm({
       ...form,
       name: item.n,
       imageUrl: `https://xivapi.com${item.i}`,
-      category: 'main', // Default to main
-      recipeId: item.r,
-      ingredients: ingredients
+      category: 'drink',
+      recipeId: id,
+      ingredients: []
+    })
+    setRecipeTree(tree)
+    setSelectedIngredientIds(new Set())
+  }
+
+  const handleToggleIngredient = (id: number) => {
+    setSelectedIngredientIds(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
     })
   }
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault()
     setSaving(true)
+    
     try {
-      // Collect selected ingredients from tree
+      // 從樹狀結構中過濾出被勾選的項目並計算總量
       const selectedIngredients: MenuItem['ingredients'] = []
       if (recipeTree) {
-        // Flatten and aggregate by ID
-        const aggregates: Record<number, number> = {}
-        const collect = (node: RecipeTreeNode) => {
+        const collectSelected = (node: RecipeTreeNode) => {
           if (selectedIngredientIds.has(node.id)) {
-            aggregates[node.id] = (aggregates[node.id] || 0) + node.amount
+            selectedIngredients.push({ id: node.id, amount: node.amount })
           }
-          node.ingredients?.forEach(collect)
+          node.ingredients?.forEach(collectSelected)
         }
-        recipeTree.ingredients?.forEach(collect)
-        
-        Object.entries(aggregates).forEach(([id, amount]) => {
-          selectedIngredients.push({ id: Number(id), amount })
-        })
+        recipeTree.ingredients?.forEach(collectSelected)
       }
 
       const data = { ...form, ingredients: selectedIngredients }
@@ -215,61 +190,80 @@ export default function MenuManager() {
         </button>
       </div>
 
-      {/* 新增/編輯表單 */}
       {showForm && (
-        <form onSubmit={handleSave} className="bg-[#2a2015] border border-[#6a5030] rounded p-4 mb-6 flex flex-col gap-3">
-          <h3 className="text-[#c9a55a] text-sm font-semibold">{editing ? '編輯品項' : '新增品項'}</h3>
+        <form onSubmit={handleSave} className="bg-[#2a2015] border border-[#6a5030] rounded p-4 mb-6 flex flex-col gap-4">
+          <h3 className="text-[#c9a55a] text-sm font-semibold border-b border-[#6a5030] pb-2">
+            {editing ? '編輯品項' : '新增品項'}
+          </h3>
 
-          {/* 全物品搜尋匯入 */}
           {!editing && (
-            <ItemSearchBox onSelect={handleSelectItem} />
+            <div className="flex flex-col gap-1">
+              <label className="text-xs text-[#9a8a70]">搜尋 FFXIV 資料庫匯入</label>
+              <ItemSearchBox onSelect={handleSelectItem} />
+            </div>
           )}
 
-          <div className="grid grid-cols-2 gap-3">
-            <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="品項名稱 *" required className="bg-[#1a1510] border border-[#4a3820] rounded px-3 py-1.5 text-sm text-[#d4c090] placeholder-[#6a5030] focus:outline-none focus:border-[#c9a55a]" />
-            <input value={form.alias} onChange={(e) => setForm({ ...form, alias: e.target.value })} placeholder="別名 (Alias)" className="bg-[#1a1510] border border-[#4a3820] rounded px-3 py-1.5 text-sm text-[#d4c090] placeholder-[#6a5030] focus:outline-none focus:border-[#c9a55a]" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="flex flex-col gap-1">
+              <label className="text-xs text-[#9a8a70]">原始名稱 *</label>
+              <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required className="bg-[#1a1510] border border-[#4a3820] rounded px-3 py-1.5 text-sm text-[#d4c090] focus:outline-none focus:border-[#c9a55a]" />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-xs text-[#c9a55a]">菜單別名 (Alias)</label>
+              <input value={form.alias} onChange={(e) => setForm({ ...form, alias: e.target.value })} placeholder="例如：錫蘭伯爵紅茶" className="bg-[#1a1510] border border-[#4a3820] rounded px-3 py-1.5 text-sm text-[#f4e38e] placeholder-[#6a5030] focus:outline-none focus:border-[#c9a55a]" />
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <input type="number" value={form.price} onChange={(e) => setForm({ ...form, price: Number(e.target.value) })} placeholder="價格 (gil)" required min={0} className="bg-[#1a1510] border border-[#4a3820] rounded px-3 py-1.5 text-sm text-[#d4c090] placeholder-[#6a5030] focus:outline-none focus:border-[#c9a55a]" />
-            <input type="number" value={form.order} onChange={(e) => setForm({ ...form, order: Number(e.target.value) })} placeholder="排序編號" min={0} className="bg-[#1a1510] border border-[#4a3820] rounded px-3 py-1.5 text-sm text-[#d4c090] placeholder-[#6a5030] focus:outline-none focus:border-[#c9a55a]" />
+            <div className="flex flex-col gap-1">
+              <label className="text-xs text-[#9a8a70]">價格 (gil)</label>
+              <input type="number" value={form.price} onChange={(e) => setForm({ ...form, price: Number(e.target.value) })} required min={0} className="bg-[#1a1510] border border-[#4a3820] rounded px-3 py-1.5 text-sm text-[#d4c090] focus:outline-none focus:border-[#c9a55a]" />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-xs text-[#9a8a70]">排序</label>
+              <input type="number" value={form.order} onChange={(e) => setForm({ ...form, order: Number(e.target.value) })} min={0} className="bg-[#1a1510] border border-[#4a3820] rounded px-3 py-1.5 text-sm text-[#d4c090] focus:outline-none focus:border-[#c9a55a]" />
+            </div>
           </div>
 
-          <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="描述" rows={2} className="bg-[#1a1510] border border-[#4a3820] rounded px-3 py-1.5 text-sm text-[#d4c090] placeholder-[#6a5030] focus:outline-none focus:border-[#c9a55a] resize-none" />
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-[#9a8a70]">描述</label>
+            <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={2} className="bg-[#1a1510] border border-[#4a3820] rounded px-3 py-1.5 text-sm text-[#d4c090] focus:outline-none focus:border-[#c9a55a] resize-none" />
+          </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-[#9a8a70]">分類</label>
             <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value as MenuCategory })} className="bg-[#1a1510] border border-[#4a3820] rounded px-3 py-1.5 text-sm text-[#d4c090] focus:outline-none focus:border-[#c9a55a]">
               {CATEGORY_ORDER.map((cat) => (
                 <option key={cat} value={cat}>{CATEGORY_LABELS[cat]}</option>
               ))}
             </select>
+          </div>
+
+          {/* 配方樹狀勾選 */}
+          {recipeTree && (
+            <div className="mt-2 border border-[#4a3820] rounded p-3 bg-[#1a1510]/50">
+              <label className="text-xs text-[#c9a55a] block mb-2 font-semibold">勾選欲納入「食材管理」的素材：</label>
+              <div className="max-h-48 overflow-y-auto custom-scrollbar">
+                <RecipeTreeSelector 
+                  node={recipeTree} 
+                  selectedIds={selectedIngredientIds} 
+                  onToggle={handleToggleIngredient} 
+                />
+              </div>
+            </div>
+          )}
+
+          <div className="flex items-center justify-between mt-2">
             <label className="flex items-center gap-2 text-xs text-[#9a8a70] cursor-pointer">
               <input type="checkbox" checked={form.available} onChange={(e) => setForm({ ...form, available: e.target.checked })} className="accent-[#c9a55a]" />
               供應中
             </label>
-          </div>
-
-          {recipeTree && (
-            <div className="bg-[#1a1510] border border-[#4a3820] rounded p-3 max-h-60 overflow-y-auto">
-              <p className="text-[#c9a55a] text-xs font-semibold mb-2">庫存同步選項 (勾選即同步)</p>
-              <RecipeTreeSelector 
-                node={recipeTree} 
-                selectedIds={selectedIngredientIds} 
-                onToggle={(id) => {
-                  const next = new Set(selectedIngredientIds)
-                  if (next.has(id)) next.delete(id)
-                  else next.add(id)
-                  setSelectedIngredientIds(next)
-                }}
-              />
+            <div className="flex gap-2">
+              <button type="button" onClick={() => setShowForm(false)} className="text-sm text-[#9a8a70] hover:text-[#d4c090] px-3 py-1.5">取消</button>
+              <button type="submit" disabled={saving} className="bg-[#c9a55a] text-[#1a1510] text-sm font-semibold px-5 py-1.5 rounded hover:bg-[#d4af7a] disabled:opacity-50 transition-colors">
+                {saving ? '儲存中…' : '儲存'}
+              </button>
             </div>
-          )}
-
-          <div className="flex gap-2 justify-end">
-            <button type="button" onClick={() => setShowForm(false)} className="text-sm text-[#9a8a70] hover:text-[#d4c090] px-3 py-1.5">取消</button>
-            <button type="submit" disabled={saving} className="bg-[#c9a55a] text-[#1a1510] text-sm font-semibold px-5 py-1.5 rounded hover:bg-[#d4af7a] disabled:opacity-50 transition-colors">
-              {saving ? '儲存中…' : '儲存'}
-            </button>
           </div>
         </form>
       )}
@@ -281,16 +275,23 @@ export default function MenuManager() {
         CATEGORY_ORDER.map((cat) =>
           grouped[cat].length > 0 ? (
             <div key={cat} className="mb-6">
-              <h4 className="text-[#c9a55a] text-xs tracking-widest mb-2 border-b border-[#4a3820] pb-1">{CATEGORY_LABELS[cat]}</h4>
+              <h4 className="text-[#c9a55a] text-xs tracking-widest mb-2 border-b border-[#4a3820] pb-1 uppercase">{CATEGORY_LABELS[cat]}</h4>
               <div className="flex flex-col gap-2">
                 {grouped[cat].map((item) => (
                   <div key={item.id} className="flex items-center gap-3 bg-[#2a2015] border border-[#4a3820] rounded p-2.5">
                     <div className="w-10 h-10 rounded bg-[#3a2e18] flex-shrink-0 overflow-hidden">
-                      {item.imageUrl ? <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-lg">🍽</div>}
+                      <img 
+                        src={item.imageUrl || `https://xivapi.com/i/066000/066313_hr1.png`} 
+                        alt={item.name} 
+                        className="w-full h-full object-cover" 
+                        onError={(e) => (e.currentTarget.src = 'https://xivapi.com/i/066000/066313_hr1.png')}
+                      />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <span className="text-[#d4c090] text-sm font-semibold">{item.name}</span>
-                      <span className="text-[#c9a55a] text-xs ml-2">{item.price} gil</span>
+                      <div className="text-[#d4c090] text-sm font-semibold truncate">
+                        {item.alias ? <span className="text-[#f4e38e]">{item.alias} <small className="text-[#6a5030] ml-1 font-normal opacity-70">({item.name})</small></span> : item.name}
+                      </div>
+                      <div className="text-[#c9a55a] text-xs">{item.price} gil</div>
                     </div>
                     <div className="flex items-center gap-2">
                       <button onClick={() => handleToggle(item)} className={`text-xs px-2 py-0.5 rounded ${item.available ? 'bg-[#1e3a1e] text-[#81c784]' : 'bg-[#3a1e1e] text-[#ef9a9a]'}`}>

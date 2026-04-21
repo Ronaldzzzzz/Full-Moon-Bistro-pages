@@ -31,7 +31,6 @@ export interface InventoryItem {
   name: string
   icon?: string
   stock: number
-  unit: string
   note: string
   recipeIngredientId?: number
 }

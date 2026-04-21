@@ -84,9 +84,9 @@ async function main() {
 
     const masterRecipes = {};
     recipesArray.forEach(r => {
-      if (!r || !r.id || !r.ingredients) return;
-      masterRecipes[r.id] = {
-        res: r.result,
+      if (!r || !r.result || !r.ingredients) return;
+      // 以物品 ID 作為 Key，方便後台直接查詢「該物品如何製作」
+      masterRecipes[r.result] = {
         ings: r.ingredients
           .filter(ing => ing.id > 0 && ing.amount > 0)
           .map(ing => ({ i: ing.id, a: ing.amount }))
