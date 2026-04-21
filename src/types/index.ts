@@ -28,6 +28,7 @@ export interface MenuItem {
 export interface InventoryItem {
   id: string
   name: string
+  icon?: string
   stock: number
   unit: string
   note: string

@@ -1,67 +1,50 @@
 export interface MasterItem {
   n: string; // name
-  i: string; // icon
+  i: string; // icon path
   r?: number; // recipeId
 }
 
 export interface MasterRecipe {
-  res: number; // resultItemId
-  ings: {
-    i: number; // itemId
-    a: number; // amount
-  }[];
+  res: number; // result item id
+  ings: { i: number; a: number }[]; // ingredients (id, amount)
 }
 
 /**
- * Recursively resolves an item into its base materials.
- * Base materials are items that do not have a recipe associated with them.
+ * 遞迴計算製作一個目標物品所需的最底層原始素材數量。
+ * 
+ * @param itemId 目標物品 ID
+ * @param amount 需求數量
+ * @param items 物品主資料
+ * @param recipes 配方主資料
+ * @param result 累加結果 (itemId -> amount)
+ * @param visited 用於防範循環依賴
  */
 export function getBaseMaterials(
   itemId: number,
-  masterItems: Record<number, MasterItem>,
-  masterRecipes: Record<number, MasterRecipe>,
-  multiplier: number = 1,
+  amount: number,
+  items: Record<number, MasterItem>,
+  recipes: Record<number, MasterRecipe>,
+  result: Record<number, number> = {},
   visited: Set<number> = new Set()
 ): Record<number, number> {
-  const result: Record<number, number> = {};
+  // 防範循環依賴 (FFXIV 雖少見，但為求嚴謹)
+  if (visited.has(itemId)) return result;
+  
+  const item = items[itemId];
+  if (!item) return result;
 
-  // Circular dependency protection
-  if (visited.has(itemId)) {
-    return result;
-  }
-  visited.add(itemId);
-
-  const item = masterItems[itemId];
-  if (!item || !item.r) {
-    // Base material
-    result[itemId] = multiplier;
-    visited.delete(itemId); // Allow same material in different branches
-    return result;
-  }
-
-  const recipe = masterRecipes[item.r];
-  if (!recipe) {
-    // Recipe ID exists but recipe data is missing, treat as base
-    result[itemId] = multiplier;
-    visited.delete(itemId);
-    return result;
-  }
-
-  for (const ing of recipe.ings) {
-    const materials = getBaseMaterials(
-      ing.i,
-      masterItems,
-      masterRecipes,
-      ing.a * multiplier,
-      visited
-    );
-
-    for (const [mId, mAmount] of Object.entries(materials)) {
-      const id = Number(mId);
-      result[id] = (result[id] || 0) + mAmount;
+  // 如果該物品有配方，則繼續向下拆解其成分
+  if (item.r && recipes[item.r]) {
+    visited.add(itemId);
+    const recipe = recipes[item.r];
+    for (const ing of recipe.ings) {
+      getBaseMaterials(ing.i, ing.a * amount, items, recipes, result, visited);
     }
+    visited.delete(itemId);
+  } else {
+    // 該物品已無配方，視為最底層素材，記錄其總需求數量
+    result[itemId] = (result[itemId] || 0) + amount;
   }
 
-  visited.delete(itemId);
   return result;
 }

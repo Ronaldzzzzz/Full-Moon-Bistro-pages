@@ -31,6 +31,16 @@ vi.mock('firebase/firestore', () => ({
 
 vi.mock('./firebase', () => ({ db: {} }))
 
+// Mock global fetch for master data
+vi.stubGlobal('fetch', vi.fn(() =>
+  Promise.resolve({
+    ok: true,
+    json: () => Promise.resolve({
+      "101": { n: "真實測試素材", i: "/icon/test.png" }
+    })
+  })
+));
+
 import {
   getMenuItems,
   addMenuItem,

@@ -52,8 +52,8 @@ export default function MenuManager() {
     async function loadMasterData() {
       try {
         const [itemsRes, recipesRes] = await Promise.all([
-          fetch('/data/master_items.json'),
-          fetch('/data/master_recipes.json')
+          fetch('/JW_Website/data/master_items.json'),
+          fetch('/JW_Website/data/master_recipes.json')
         ])
         const [items, recipes] = await Promise.all([
           itemsRes.json(),
@@ -95,7 +95,7 @@ export default function MenuManager() {
     let ingredients: MenuItem['ingredients'] = []
     
     if (masterData && item.r) {
-      const materials = getBaseMaterials(id, masterData.items, masterData.recipes)
+      const materials = getBaseMaterials(id, 1, masterData.items, masterData.recipes)
       ingredients = Object.entries(materials).map(([mId, mAmount]) => ({
         id: Number(mId),
         amount: mAmount

@@ -45,25 +45,68 @@ export async function updateMenuItem(
 }
 
 async function syncInventoryFromIngredients(ingredients: MenuItem['ingredients']): Promise<void> {
-  if (!ingredients) return
+  if (!ingredients || ingredients.length === 0) return
   const inventoryItems = await getInventoryItems()
   const batch = writeBatch(db)
   let hasOps = false
 
+  // 1. 載入 master_items.json 獲取真實資訊
+  let masterItems: Record<string, { n: string; i: string }> = {}
+  try {
+    const res = await fetch('/JW_Website/data/master_items.json')
+    if (res.ok) {
+      masterItems = await res.json()
+    }
+  } catch (error) {
+    console.error('Failed to load master_items.json in sync logic:', error)
+  }
+
   for (const ing of ingredients) {
-    const exists = inventoryItems.some(
+    // 比對既存食材 (透過 recipeIngredientId 或舊有名稱)
+    const existingItem = inventoryItems.find(
       (item) => item.recipeIngredientId === ing.id || item.name === `食材 #${ing.id}`
     )
-    if (!exists) {
+
+    const masterData = masterItems[ing.id.toString()]
+    const realName = masterData ? masterData.n : `食材 #${ing.id}`
+    const iconPath = masterData ? masterData.i : undefined
+
+    if (!existingItem) {
+      // 若不存在則建立
       const newRef = doc(collection(db, 'inventory'))
-      batch.set(newRef, {
-        name: `食材 #${ing.id}`,
+      const newItemData: any = {
+        name: realName,
         stock: 0,
         unit: '份',
-        note: '自動匯入建立',
+        note: '來自 Teamcraft 自動匯入',
         recipeIngredientId: ing.id,
-      })
+      }
+      if (iconPath) newItemData.icon = iconPath
+
+      batch.set(newRef, newItemData)
       hasOps = true
+    } else {
+      // 若已存在但資訊不全 (如舊名稱)，則更新
+      const updates: any = {}
+      let needsUpdate = false
+
+      if (existingItem.name === `食材 #${ing.id}` && masterData) {
+        updates.name = realName
+        needsUpdate = true
+      }
+      if (!existingItem.icon && iconPath) {
+        updates.icon = iconPath
+        needsUpdate = true
+      }
+      if (existingItem.recipeIngredientId !== ing.id) {
+        updates.recipeIngredientId = ing.id
+        needsUpdate = true
+      }
+
+      if (needsUpdate) {
+        batch.update(doc(db, 'inventory', existingItem.id), updates)
+        hasOps = true
+      }
     }
   }
 
