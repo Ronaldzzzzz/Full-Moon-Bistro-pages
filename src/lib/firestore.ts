@@ -308,7 +308,7 @@ export async function getOrders(): Promise<Order[]> {
   return snap.docs.map((d) => ({ id: d.id, ...d.data() } as Order))
 }
 
-export async function addOrder(data: Omit<Order, 'id'>): Promise<string> {
+export async function addOrder(data: Omit<Order, 'id' | 'timestamp'>): Promise<string> {
   const ref = await addDoc(collection(db, 'orders'), {
     ...data,
     timestamp: serverTimestamp(),
@@ -327,7 +327,12 @@ export async function getGlobalSettings(): Promise<GlobalSettings> {
   if (!docSnap.exists()) {
     return { address: '', orderCooldownMinutes: 30, photoUrls: [] }
   }
-  return docSnap.data() as GlobalSettings
+  const data = docSnap.data()
+  return {
+    address: data?.address ?? '',
+    orderCooldownMinutes: data?.orderCooldownMinutes ?? 30,
+    photoUrls: data?.photoUrls ?? [],
+  }
 }
 
 export async function updateGlobalSettings(data: Partial<GlobalSettings>): Promise<void> {
