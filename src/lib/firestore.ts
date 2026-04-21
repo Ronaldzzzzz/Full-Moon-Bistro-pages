@@ -53,7 +53,7 @@ async function syncInventoryFromIngredients(ingredients: MenuItem['ingredients']
   // 1. 載入 master_items.json 獲取真實資訊
   let masterItems: Record<string, { n: string; i: string }> = {}
   try {
-    const res = await fetch('/JW_Website/data/master_items.json')
+    const res = await fetch('/Full-Moon-Bistro-pages/data/master_items.json')
     if (res.ok) {
       masterItems = await res.json()
     }

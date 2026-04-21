@@ -52,8 +52,8 @@ export default function MenuManager() {
     async function loadMasterData() {
       try {
         const [itemsRes, recipesRes] = await Promise.all([
-          fetch('/JW_Website/data/master_items.json'),
-          fetch('/JW_Website/data/master_recipes.json')
+          fetch('/Full-Moon-Bistro-pages/data/master_items.json'),
+          fetch('/Full-Moon-Bistro-pages/data/master_recipes.json')
         ])
         const [items, recipes] = await Promise.all([
           itemsRes.json(),

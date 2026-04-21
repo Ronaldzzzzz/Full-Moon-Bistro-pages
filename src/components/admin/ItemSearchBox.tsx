@@ -15,7 +15,7 @@ export default function ItemSearchBox({ onSelect, placeholder = "搜尋 FFXIV �
 
   // 載入本地 master 資料
   useEffect(() => {
-    fetch('/JW_Website/data/master_items.json')
+    fetch('/Full-Moon-Bistro-pages/data/master_items.json')
       .then(res => res.json())
       .then(setItems)
       .catch(err => console.error('Failed to load master items:', err));
