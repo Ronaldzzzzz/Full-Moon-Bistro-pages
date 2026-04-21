@@ -9,6 +9,13 @@ export interface MasterRecipe {
   ings: { i: number; a: number }[]; // ingredients (id, amount)
 }
 
+export interface RecipeTreeNode {
+  id: number;
+  name: string;
+  amount: number;
+  ingredients?: RecipeTreeNode[];
+}
+
 /**
  * 遞迴計算製作一個目標物品所需的最底層原始素材數量。
  * 
@@ -47,4 +54,43 @@ export function getBaseMaterials(
   }
 
   return result;
+}
+
+/**
+ * 遞迴獲取該物品的所有素材，若素材本身也有配方，則將其 ingredients 展開為 RecipeTreeNode[]。
+ * 
+ * @param itemId 目標物品 ID
+ * @param amount 需求數量
+ * @param items 物品主資料
+ * @param recipes 配方主資料
+ * @param visited 用於防範循環依賴
+ * @returns 樹狀結構的配方節點
+ */
+export function getRecipeTree(
+  itemId: number,
+  amount: number,
+  items: Record<number, MasterItem>,
+  recipes: Record<number, MasterRecipe>,
+  visited: Set<number> = new Set()
+): RecipeTreeNode {
+  const item = items[itemId];
+  const node: RecipeTreeNode = {
+    id: itemId,
+    name: item ? item.n : `Unknown Item (${itemId})`,
+    amount: amount,
+  };
+
+  // 防範循環依賴
+  if (visited.has(itemId)) return node;
+
+  // 如果該物品有配方，則展開其成分
+  if (item && item.r && recipes[item.r]) {
+    visited.add(itemId);
+    const recipe = recipes[item.r];
+    node.ingredients = recipe.ings.map((ing) =>
+      getRecipeTree(ing.i, ing.a * amount, items, recipes, new Set(visited))
+    );
+  }
+
+  return node;
 }
