@@ -45,6 +45,11 @@ export default function MenuPage() {
                   <h2 className="text-[var(--color-gold-primary)] font-serif text-sm tracking-widest uppercase">
                     {CATEGORY_LABELS[cat]}
                   </h2>
+                  {cat === 'drink' && (
+                    <span className="text-[var(--color-text-muted)] text-[10px] tracking-tighter">
+                      * 點飲料一杯即附上店長的隨機餐點
+                    </span>
+                  )}
                   <div className="flex-1 h-px bg-[var(--color-border-gold)] opacity-30" />
                 </div>
                 <ul className="flex flex-col gap-3">
