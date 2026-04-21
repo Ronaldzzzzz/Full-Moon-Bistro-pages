@@ -1,6 +1,4 @@
 import { useEffect, useState } from 'react'
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
-import { storage } from '../../lib/firebase'
 import {
   getMenuItems,
   addMenuItem,
@@ -10,11 +8,13 @@ import {
 import type { MenuItem, MenuCategory } from '../../types'
 import { CATEGORY_LABELS, CATEGORY_ORDER } from '../../types'
 import ItemSearchBox from './ItemSearchBox'
-import { getBaseMaterials } from '../../lib/recipeUtils'
-import type { MasterItem, MasterRecipe } from '../../lib/recipeUtils'
+import RecipeTreeSelector from './RecipeTreeSelector'
+import { getRecipeTree } from '../../lib/recipeUtils'
+import type { MasterItem, MasterRecipe, RecipeTreeNode } from '../../lib/recipeUtils'
 
 const EMPTY_FORM = {
   name: '',
+  alias: '',
   description: '',
   price: 0,
   category: 'main' as MenuCategory,
@@ -30,9 +30,11 @@ export default function MenuManager() {
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState<MenuItem | null>(null)
   const [form, setForm] = useState(EMPTY_FORM)
-  const [imageFile, setImageFile] = useState<File | null>(null)
   const [saving, setSaving] = useState(false)
   const [showForm, setShowForm] = useState(false)
+
+  const [recipeTree, setRecipeTree] = useState<RecipeTreeNode | null>(null)
+  const [selectedIngredientIds, setSelectedIngredientIds] = useState<Set<number>>(new Set())
 
   const [masterData, setMasterData] = useState<{
     items: Record<number, MasterItem>;
@@ -71,6 +73,7 @@ export default function MenuManager() {
     setEditing(item)
     setForm({
       name: item.name,
+      alias: item.alias || '',
       description: item.description,
       price: item.price,
       category: item.category,
@@ -80,27 +83,64 @@ export default function MenuManager() {
       recipeId: item.recipeId,
       ingredients: item.ingredients || []
     })
-    setImageFile(null)
+
+    // Initialize recipe tree for editing if it exists
+    if (masterData && item.recipeId) {
+      // Find the itemId that corresponds to this recipeId
+      const itemId = Object.entries(masterData.items).find(([_, info]) => info.r === item.recipeId)?.[0]
+      if (itemId) {
+        const tree = getRecipeTree(Number(itemId), 1, masterData.items, masterData.recipes)
+        setRecipeTree(tree)
+        setSelectedIngredientIds(new Set(item.ingredients?.map(ing => ing.id) || []))
+      }
+    } else {
+      setRecipeTree(null)
+      setSelectedIngredientIds(new Set())
+    }
+
     setShowForm(true)
   }
 
   function startNew() {
     setEditing(null)
     setForm({ ...EMPTY_FORM, order: items.length })
-    setImageFile(null)
+    setRecipeTree(null)
+    setSelectedIngredientIds(new Set())
     setShowForm(true)
   }
 
   function handleSelectItem(id: number, item: MasterItem) {
     let ingredients: MenuItem['ingredients'] = []
+    let tree: RecipeTreeNode | null = null
+    const selectedIds = new Set<number>()
     
     if (masterData && item.r) {
-      const materials = getBaseMaterials(id, 1, masterData.items, masterData.recipes)
-      ingredients = Object.entries(materials).map(([mId, mAmount]) => ({
-        id: Number(mId),
-        amount: mAmount
-      }))
+      tree = getRecipeTree(id, 1, masterData.items, masterData.recipes)
+      
+      // Default: select all ingredients in the tree
+      const collectIds = (node: RecipeTreeNode) => {
+        if (node.id !== id) selectedIds.add(node.id)
+        node.ingredients?.forEach(collectIds)
+      }
+      tree.ingredients?.forEach(collectIds)
+
+      // Flatten for the form state (all selected by default)
+      ingredients = Array.from(selectedIds).map(sId => {
+        // Need to find amount from tree... this is a bit tricky if same item appears multiple times
+        // but syncInventoryFromIngredients handles it by recipeIngredientId.
+        // Let's just collect all selected nodes with their amounts.
+        let amount = 0
+        const findAmount = (node: RecipeTreeNode) => {
+          if (node.id === sId) amount += node.amount
+          node.ingredients?.forEach(findAmount)
+        }
+        findAmount(tree!)
+        return { id: sId, amount }
+      })
     }
+
+    setRecipeTree(tree)
+    setSelectedIngredientIds(selectedIds)
 
     setForm({
       ...form,
@@ -116,13 +156,25 @@ export default function MenuManager() {
     e.preventDefault()
     setSaving(true)
     try {
-      let imageUrl = form.imageUrl
-      if (imageFile) {
-        const storageRef = ref(storage, `menuItems/${Date.now()}_${imageFile.name}`)
-        await uploadBytes(storageRef, imageFile)
-        imageUrl = await getDownloadURL(storageRef)
+      // Collect selected ingredients from tree
+      const selectedIngredients: MenuItem['ingredients'] = []
+      if (recipeTree) {
+        // Flatten and aggregate by ID
+        const aggregates: Record<number, number> = {}
+        const collect = (node: RecipeTreeNode) => {
+          if (selectedIngredientIds.has(node.id)) {
+            aggregates[node.id] = (aggregates[node.id] || 0) + node.amount
+          }
+          node.ingredients?.forEach(collect)
+        }
+        recipeTree.ingredients?.forEach(collect)
+        
+        Object.entries(aggregates).forEach(([id, amount]) => {
+          selectedIngredients.push({ id: Number(id), amount })
+        })
       }
-      const data = { ...form, imageUrl }
+
+      const data = { ...form, ingredients: selectedIngredients }
       if (editing) {
         await updateMenuItem(editing.id, data)
       } else {
@@ -175,7 +227,12 @@ export default function MenuManager() {
 
           <div className="grid grid-cols-2 gap-3">
             <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="品項名稱 *" required className="bg-[#1a1510] border border-[#4a3820] rounded px-3 py-1.5 text-sm text-[#d4c090] placeholder-[#6a5030] focus:outline-none focus:border-[#c9a55a]" />
+            <input value={form.alias} onChange={(e) => setForm({ ...form, alias: e.target.value })} placeholder="別名 (Alias)" className="bg-[#1a1510] border border-[#4a3820] rounded px-3 py-1.5 text-sm text-[#d4c090] placeholder-[#6a5030] focus:outline-none focus:border-[#c9a55a]" />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
             <input type="number" value={form.price} onChange={(e) => setForm({ ...form, price: Number(e.target.value) })} placeholder="價格 (gil)" required min={0} className="bg-[#1a1510] border border-[#4a3820] rounded px-3 py-1.5 text-sm text-[#d4c090] placeholder-[#6a5030] focus:outline-none focus:border-[#c9a55a]" />
+            <input type="number" value={form.order} onChange={(e) => setForm({ ...form, order: Number(e.target.value) })} placeholder="排序編號" min={0} className="bg-[#1a1510] border border-[#4a3820] rounded px-3 py-1.5 text-sm text-[#d4c090] placeholder-[#6a5030] focus:outline-none focus:border-[#c9a55a]" />
           </div>
 
           <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="描述" rows={2} className="bg-[#1a1510] border border-[#4a3820] rounded px-3 py-1.5 text-sm text-[#d4c090] placeholder-[#6a5030] focus:outline-none focus:border-[#c9a55a] resize-none" />
@@ -186,15 +243,27 @@ export default function MenuManager() {
                 <option key={cat} value={cat}>{CATEGORY_LABELS[cat]}</option>
               ))}
             </select>
-            <input type="number" value={form.order} onChange={(e) => setForm({ ...form, order: Number(e.target.value) })} placeholder="排序編號" min={0} className="bg-[#1a1510] border border-[#4a3820] rounded px-3 py-1.5 text-sm text-[#d4c090] placeholder-[#6a5030] focus:outline-none focus:border-[#c9a55a]" />
+            <label className="flex items-center gap-2 text-xs text-[#9a8a70] cursor-pointer">
+              <input type="checkbox" checked={form.available} onChange={(e) => setForm({ ...form, available: e.target.checked })} className="accent-[#c9a55a]" />
+              供應中
+            </label>
           </div>
 
-          <input type="file" accept="image/*" onChange={(e) => setImageFile(e.target.files?.[0] ?? null)} className="text-sm text-[#9a8a70] file:mr-3 file:py-1 file:px-3 file:rounded file:border-0 file:bg-[#3a2e18] file:text-[#c9a55a] file:text-xs" />
-
-          <label className="flex items-center gap-2 text-xs text-[#9a8a70] cursor-pointer">
-            <input type="checkbox" checked={form.available} onChange={(e) => setForm({ ...form, available: e.target.checked })} className="accent-[#c9a55a]" />
-            供應中
-          </label>
+          {recipeTree && (
+            <div className="bg-[#1a1510] border border-[#4a3820] rounded p-3 max-h-60 overflow-y-auto">
+              <p className="text-[#c9a55a] text-xs font-semibold mb-2">庫存同步選項 (勾選即同步)</p>
+              <RecipeTreeSelector 
+                node={recipeTree} 
+                selectedIds={selectedIngredientIds} 
+                onToggle={(id) => {
+                  const next = new Set(selectedIngredientIds)
+                  if (next.has(id)) next.delete(id)
+                  else next.add(id)
+                  setSelectedIngredientIds(next)
+                }}
+              />
+            </div>
+          )}
 
           <div className="flex gap-2 justify-end">
             <button type="button" onClick={() => setShowForm(false)} className="text-sm text-[#9a8a70] hover:text-[#d4c090] px-3 py-1.5">取消</button>
