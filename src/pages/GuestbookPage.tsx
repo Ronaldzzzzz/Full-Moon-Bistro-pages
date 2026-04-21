@@ -3,7 +3,7 @@ import type { Message } from '../types'
 import { getMessages } from '../lib/firestore'
 import MessageCard from '../components/guestbook/MessageCard'
 import MessageForm from '../components/guestbook/MessageForm'
-import LiveMusicBanner from '../components/LiveMusicBanner'
+import NoticeBanner from '../components/NoticeBanner'
 
 export default function GuestbookPage() {
   const [messages, setMessages] = useState<Message[]>([])
@@ -25,7 +25,7 @@ export default function GuestbookPage() {
         <div className="mt-2 wave-divider" />
       </div>
 
-      <LiveMusicBanner />
+      <NoticeBanner />
 
       <MessageForm onSubmitted={load} />
 

@@ -3,7 +3,7 @@ import type { MenuItem } from '../types'
 import { CATEGORY_LABELS, CATEGORY_ORDER } from '../types'
 import { getMenuItems } from '../lib/firestore'
 import MenuItemRow from '../components/menu/MenuItemRow'
-import LiveMusicBanner from '../components/LiveMusicBanner'
+import NoticeBanner from '../components/NoticeBanner'
 
 export default function MenuPage() {
   const [items, setItems] = useState<MenuItem[]>([])
@@ -29,7 +29,7 @@ export default function MenuPage() {
         <div className="mt-2 wave-divider" />
       </div>
 
-      <LiveMusicBanner />
+      <NoticeBanner />
 
       {/* 品項清單 (分組顯示) */}
       <div className="flex flex-col gap-10">

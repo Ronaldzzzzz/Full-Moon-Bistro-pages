@@ -34,6 +34,12 @@
 body {
   background-color: var(--color-bg-primary);
   color: var(--color-text-primary);
+  font-size: 1.05rem;
+}
+
+.content-text {
+  font-size: 1.1rem;
+  letter-spacing: 0.05em;
 }
 
 /* 統一流光動畫：絕對同步邏輯 */

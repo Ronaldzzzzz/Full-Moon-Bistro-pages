@@ -62,3 +62,11 @@ export interface LiveMusicConfig {
   isActive: boolean
   updatedAt: Timestamp
 }
+
+export interface NoticeConfig {
+  id: string
+  content: string
+  isActive: boolean
+  emoji?: string
+  updatedAt: Timestamp
+}

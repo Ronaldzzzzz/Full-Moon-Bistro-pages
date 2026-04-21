@@ -14,7 +14,7 @@ import {
   writeBatch,
 } from 'firebase/firestore'
 import { db } from './firebase'
-import type { MenuItem, InventoryItem, Message, Reply, LiveMusicConfig } from '../types'
+import type { MenuItem, InventoryItem, Message, Reply, LiveMusicConfig, NoticeConfig } from '../types'
 
 // ─── Menu Items ────────────────────────────────────────────────
 
@@ -173,4 +173,31 @@ export async function updateLiveMusicConfig(data: Partial<LiveMusicConfig>): Pro
     ...data,
     updatedAt: serverTimestamp()
   }, { merge: true })
+}
+
+// ─── Notices ───────────────────────────────────────────────────
+
+export async function getNotices(): Promise<NoticeConfig[]> {
+  const q = query(collection(db, 'notices'), orderBy('updatedAt', 'desc'))
+  const snap = await getDocs(q)
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() } as NoticeConfig))
+}
+
+export async function updateNotice(id: string, data: Partial<Omit<NoticeConfig, 'id'>>): Promise<void> {
+  await updateDoc(doc(db, 'notices', id), {
+    ...data,
+    updatedAt: serverTimestamp()
+  })
+}
+
+export async function addNotice(data: Omit<NoticeConfig, 'id' | 'updatedAt'>): Promise<string> {
+  const ref = await addDoc(collection(db, 'notices'), {
+    ...data,
+    updatedAt: serverTimestamp()
+  })
+  return ref.id
+}
+
+export async function deleteNotice(id: string): Promise<void> {
+  await deleteDoc(doc(db, 'notices', id))
 }
