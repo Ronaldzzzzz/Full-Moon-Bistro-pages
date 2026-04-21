@@ -106,9 +106,24 @@ export default function MenuManager() {
 
   function handleSelectItem(id: number, item: MasterItem) {
     let tree: RecipeTreeNode | null = null
+    const selectedIds = new Set<number>()
     
     if (masterData && masterData.recipes[id]) {
       tree = getRecipeTree(id, 1, masterData.items, masterData.recipes)
+      
+      // 遞迴收集所有非水晶類 (ID 2-19) 的素材 ID
+      const collectValidIds = (node: RecipeTreeNode) => {
+        // 排除 ID 2~19
+        const isCrystal = node.id >= 2 && node.id <= 19
+        if (!isCrystal && node.id !== id) {
+          selectedIds.add(node.id)
+        }
+        node.ingredients?.forEach(collectValidIds)
+      }
+      
+      if (tree.ingredients) {
+        tree.ingredients.forEach(collectValidIds)
+      }
     }
 
     setForm({
@@ -120,7 +135,7 @@ export default function MenuManager() {
       ingredients: []
     })
     setRecipeTree(tree)
-    setSelectedIngredientIds(new Set())
+    setSelectedIngredientIds(selectedIds)
   }
 
   const handleToggleIngredient = (id: number) => {
@@ -242,7 +257,10 @@ export default function MenuManager() {
           {/* 配方樹狀勾選 */}
           {recipeTree && (
             <div className="mt-2 border border-[#4a3820] rounded p-3 bg-[#1a1510]/50">
-              <label className="text-xs text-[#c9a55a] block mb-2 font-semibold">勾選欲納入「食材管理」的素材：</label>
+              <label className="text-xs text-[#c9a55a] block mb-2 font-semibold">
+                勾選欲納入「食材管理」的素材：
+                <span className="text-[#6a5030] ml-2 font-normal">(已排除碎晶/水晶/簇晶)</span>
+              </label>
               <div className="max-h-48 overflow-y-auto custom-scrollbar">
                 <RecipeTreeSelector 
                   node={recipeTree} 
@@ -288,17 +306,29 @@ export default function MenuManager() {
                       />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="text-[#d4c090] text-sm font-semibold truncate">
-                        {item.alias ? <span className="text-[#f4e38e]">{item.alias} <small className="text-[#6a5030] ml-1 font-normal opacity-70">({item.name})</small></span> : item.name}
+                      <div className="text-[#d4c090] text-lg font-bold truncate">
+                        {item.alias ? (
+                          <span className="text-[#f4e38e]">
+                            {item.alias} 
+                            <small className="text-[#6a5030] ml-2 font-normal opacity-70 text-sm">
+                              ({item.name})
+                            </small>
+                          </span>
+                        ) : (
+                          item.name
+                        )}
                       </div>
-                      <div className="text-[#c9a55a] text-xs">{item.price} gil</div>
+                      <div className="text-[#c9a55a] text-sm font-medium mt-0.5">{item.price} gil</div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <button onClick={() => handleToggle(item)} className={`text-xs px-2 py-0.5 rounded ${item.available ? 'bg-[#1e3a1e] text-[#81c784]' : 'bg-[#3a1e1e] text-[#ef9a9a]'}`}>
+                    <div className="flex items-center gap-3">
+                      <button 
+                        onClick={() => handleToggle(item)} 
+                        className={`text-sm px-3 py-1 rounded-md font-medium transition-colors ${item.available ? 'bg-[#1e3a1e] text-[#81c784] hover:bg-[#254a25]' : 'bg-[#3a1e1e] text-[#ef9a9a] hover:bg-[#4a2222]'}`}
+                      >
                         {item.available ? '供應中' : '已下架'}
                       </button>
-                      <button onClick={() => startEdit(item)} className="text-xs text-[#9a8a70] hover:text-[#d4c090] px-2 py-0.5">編輯</button>
-                      <button onClick={() => handleDelete(item.id)} className="text-xs text-[#6a3030] hover:text-[#ef9a9a] px-2 py-0.5">刪除</button>
+                      <button onClick={() => startEdit(item)} className="text-sm text-[#9a8a70] hover:text-[#d4c090] px-2 py-1 font-medium underline underline-offset-4">編輯</button>
+                      <button onClick={() => handleDelete(item.id)} className="text-sm text-[#6a3030] hover:text-[#ef9a9a] px-2 py-1 font-medium">刪除</button>
                     </div>
                   </div>
                 ))}

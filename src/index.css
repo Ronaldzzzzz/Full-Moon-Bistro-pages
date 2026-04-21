@@ -42,6 +42,18 @@ body {
   letter-spacing: 0.05em;
 }
 
+/* 後台管理文字放大 */
+.admin-content {
+  font-size: 1.1rem;
+}
+
+.admin-content input, 
+.admin-content textarea, 
+.admin-content select, 
+.admin-content button {
+  font-size: 1rem;
+}
+
 /* 統一流光動畫：絕對同步邏輯 */
 .text-shimmer,
 .wave-divider,

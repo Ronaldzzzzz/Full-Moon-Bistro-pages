@@ -36,7 +36,7 @@ export default function AdminPage() {
   const visibleTabs = tabs.filter(t => !t.minRole || t.minRole === session.role)
 
   return (
-    <div>
+    <div className="admin-content">
       {/* 後台頂部 */}
       <div className="flex items-center justify-between mb-6">
         <h2 className="font-serif text-[var(--color-gold-primary)] tracking-widest">⚙ 後台管理</h2>

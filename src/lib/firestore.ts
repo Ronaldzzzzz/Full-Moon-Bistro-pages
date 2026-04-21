@@ -51,6 +51,7 @@ async function syncInventoryFromIngredients(itemName: string, ingredients: MenuI
   const inventoryItems = await getInventoryItems()
   const batch = writeBatch(db)
   let hasOps = false
+  const processedIds = new Set<number>() // 追蹤此批次已處理的 ID
 
   // 1. 載入 master_items.json 獲取真實資訊
   let masterItems: Record<string, { n: string; i: string }> = {}
@@ -64,6 +65,9 @@ async function syncInventoryFromIngredients(itemName: string, ingredients: MenuI
   }
 
   for (const ing of ingredients) {
+    if (processedIds.has(ing.id)) continue
+    processedIds.add(ing.id)
+
     // 比對既存食材 (透過 recipeIngredientId 或舊有名稱)
     const existingItem = inventoryItems.find(
       (item) => item.recipeIngredientId === ing.id || item.name === `食材 #${ing.id}`
@@ -79,14 +83,14 @@ async function syncInventoryFromIngredients(itemName: string, ingredients: MenuI
       const newItemData: any = {
         name: realName,
         stock: 0,
-        note: `${itemName} 需求 ${ing.amount} 個`,
+        note: `${itemName}`,
         recipeIngredientId: ing.id,
       }
       if (iconPath) newItemData.icon = iconPath
 
       batch.set(newRef, newItemData)
       hasOps = true
-    } else {
+      } else {
       // 若已存在但資訊不全，則更新。備註若原本是自動匯入的也可以更新。
       const updates: any = {}
       let needsUpdate = false
@@ -103,10 +107,10 @@ async function syncInventoryFromIngredients(itemName: string, ingredients: MenuI
         updates.recipeIngredientId = ing.id
         needsUpdate = true
       }
-      
-      // 更新備註以顯示最新的品項關聯
-      if (!existingItem.note || existingItem.note.includes('自動匯入')) {
-        updates.note = `${itemName} 需求 ${ing.amount} 個`
+
+      // 更新備註，僅保留品項名稱
+      if (!existingItem.note || existingItem.note.includes('需求')) {
+        updates.note = `${itemName}`
         needsUpdate = true
       }
 

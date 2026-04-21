@@ -8,11 +8,25 @@ interface Props {
 }
 
 export default function RecipeTreeSelector({ node, selectedIds, onToggle, level = 0 }: Props) {
+  const isCrystal = node.id >= 2 && node.id <= 19;
   const isSelected = selectedIds.has(node.id);
 
-  // If level is 0, it's the root (the item itself). 
-  // We might want to style it differently or just show its children.
-  // The instruction says "每一項（含子項）前方都有一個 Checkbox"。
+  // 如果是水晶類，則不顯示本項目，但仍需遞迴處理子項 (雖然水晶通常沒有子項)
+  if (isCrystal) {
+    return (
+      <>
+        {node.ingredients?.map((child, index) => (
+          <RecipeTreeSelector 
+            key={`${node.id}-${child.id}-${index}`} 
+            node={child} 
+            selectedIds={selectedIds} 
+            onToggle={onToggle} 
+            level={level} // 維持目前的 level，因為父項被隱藏了
+          />
+        ))}
+      </>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-1">
