@@ -1,19 +1,24 @@
 import { useEffect, useState, useMemo } from 'react'
 import type { MenuItem } from '../types'
 import { CATEGORY_LABELS, CATEGORY_ORDER } from '../types'
-import { getMenuItems } from '../lib/firestore'
+import { getMenuItems, getGlobalSettings } from '../lib/firestore'
 import MenuItemRow from '../components/menu/MenuItemRow'
 import NoticeBanner from '../components/NoticeBanner'
 import OrderForm from '../components/OrderForm'
+import PhotoCard from '../components/PhotoCard'
 
 export default function MenuPage() {
   const [items, setItems] = useState<MenuItem[]>([])
   const [loading, setLoading] = useState(true)
+  const [photoUrls, setPhotoUrls] = useState<string[]>([])
 
   useEffect(() => {
     getMenuItems()
       .then(setItems)
       .finally(() => setLoading(false))
+    getGlobalSettings()
+      .then(settings => setPhotoUrls(settings.photoUrls ?? []))
+      .catch(() => {/* 靜默處理，不影響菜單顯示 */})
   }, [])
 
   const grouped = useMemo(() => CATEGORY_ORDER.reduce((acc, cat) => {
@@ -23,6 +28,7 @@ export default function MenuPage() {
 
   return (
     <div className="flex flex-col gap-8 pb-12">
+      <PhotoCard photoUrls={photoUrls} />
       {/* Banner */}
       <div className="border border-[var(--color-border-gold)] rounded p-6 text-center bg-gradient-to-r from-[var(--color-bg-card)] to-[var(--color-bg-card-hover)] shadow-[var(--shadow-glow-warm)] banner-shimmer">
         <h1 className="font-serif text-3xl md:text-4xl font-bold tracking-widest text-shimmer mb-2">✦ 月圓餐館 - FULL MOON BISTRO ✦</h1>
