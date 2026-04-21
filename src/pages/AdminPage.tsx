@@ -7,8 +7,10 @@ import InventoryManager from '../components/admin/InventoryManager'
 import MessageManager from '../components/admin/MessageManager'
 import AdminManager from '../components/admin/AdminManager'
 import NoticeManager from '../components/admin/NoticeManager'
+import OrderManager from '../components/admin/OrderManager'
+import GlobalSettingsManager from '../components/admin/GlobalSettingsManager'
 
-type AdminTab = 'menu' | 'inventory' | 'messages' | 'admins' | 'notice'
+type AdminTab = 'menu' | 'inventory' | 'messages' | 'admins' | 'notice' | 'orders' | 'settings'
 
 export default function AdminPage() {
   const [session, setSession] = useState<AdminSession | null>(getAdminSession)
@@ -30,6 +32,8 @@ export default function AdminPage() {
     { key: 'inventory', label: '食材庫存' },
     { key: 'messages', label: '留言管理' },
     { key: 'notice', label: '注意事項' },
+    { key: 'orders', label: '點餐管理' },
+    { key: 'settings', label: '系統設定' },
     { key: 'admins', label: '帳號管理', minRole: 'owner' },
   ]
 
@@ -72,6 +76,8 @@ export default function AdminPage() {
       {tab === 'inventory' && <InventoryManager />}
       {tab === 'messages' && <MessageManager />}
       {tab === 'notice' && <NoticeManager />}
+      {tab === 'orders' && <OrderManager />}
+      {tab === 'settings' && <GlobalSettingsManager />}
       {tab === 'admins' && session.role === 'owner' && <AdminManager />}
     </div>
   )
