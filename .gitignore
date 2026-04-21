@@ -24,6 +24,9 @@ dist-ssr
 *.sw?
 .env
 
+# Git worktrees
+.worktrees
+
 # Ignore all markdown files
 *.md
 # But keep README.md
