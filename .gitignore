@@ -24,10 +24,16 @@ dist-ssr
 *.sw?
 .env
 
+# AI & Vibing Coding
+.claude
+.superpowers
+
 # Git worktrees
 .worktrees
 
 # Ignore all markdown files
 *.md
-# But keep README.md
+# But keep README.md, PLAN.md, PROGRESS.md (for project tracking)
 !README.md
+!PLAN.md
+!PROGRESS.md
