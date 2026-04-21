@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import type { MenuItem } from '../types'
 import { CATEGORY_LABELS, CATEGORY_ORDER } from '../types'
 import { getMenuItems } from '../lib/firestore'
@@ -15,10 +15,10 @@ export default function MenuPage() {
       .finally(() => setLoading(false))
   }, [])
 
-  const grouped = CATEGORY_ORDER.reduce((acc, cat) => {
+  const grouped = useMemo(() => CATEGORY_ORDER.reduce((acc, cat) => {
     acc[cat] = items.filter(i => i.category === cat)
     return acc
-  }, {} as Record<string, MenuItem[]>)
+  }, {} as Record<string, MenuItem[]>), [items])
 
   return (
     <div className="flex flex-col gap-8 pb-12">

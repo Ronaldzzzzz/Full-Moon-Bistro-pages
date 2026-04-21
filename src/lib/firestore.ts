@@ -169,17 +169,18 @@ export async function deleteInventoryItems(ids: string[]): Promise<void> {
 export async function getMessages(): Promise<Message[]> {
   const q = query(collection(db, 'messages'), orderBy('timestamp', 'desc'))
   const snap = await getDocs(q)
-  const messages: Message[] = []
 
-  for (const d of snap.docs) {
-    const repliesSnap = await getDocs(
-      query(collection(db, 'messages', d.id, 'replies'), orderBy('timestamp'))
-    )
-    const replies: Reply[] = repliesSnap.docs.map(
-      (r) => ({ id: r.id, ...r.data() } as Reply)
-    )
-    messages.push({ id: d.id, ...d.data(), replies } as Message)
-  }
+  const messages = await Promise.all(
+    snap.docs.map(async (d) => {
+      const repliesSnap = await getDocs(
+        query(collection(db, 'messages', d.id, 'replies'), orderBy('timestamp'))
+      )
+      const replies: Reply[] = repliesSnap.docs.map(
+        (r) => ({ id: r.id, ...r.data() } as Reply)
+      )
+      return { id: d.id, ...d.data(), replies } as Message
+    })
+  )
 
   return messages
 }

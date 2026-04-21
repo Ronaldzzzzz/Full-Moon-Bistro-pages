@@ -16,7 +16,6 @@ const EMPTY_FORM = {
   note: '',
 }
 
-let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
 interface InventoryNode extends InventoryItem {
   children: InventoryNode[];
@@ -36,6 +35,7 @@ export default function InventoryManager() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null)
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const showToast = useCallback((msg: string, type: 'success' | 'error' = 'success') => {
     if (toastTimerRef.current) clearTimeout(toastTimerRef.current)
@@ -145,8 +145,8 @@ export default function InventoryManager() {
     const diff = newStock - item.stock;
     const docIds = item.docIds || [item.id];
     setItems(prev => prev.map(i => i.id === docIds[0] ? { ...i, stock: i.stock + diff } : i));
-    if (debounceTimer) clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(async () => {
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    debounceTimerRef.current = setTimeout(async () => {
       try {
         await updateInventoryItem(docIds[0], { stock: item.stock + diff });
         showToast('庫存同步成功');
