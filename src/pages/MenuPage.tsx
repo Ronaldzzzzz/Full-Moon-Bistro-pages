@@ -4,6 +4,7 @@ import { CATEGORY_LABELS, CATEGORY_ORDER } from '../types'
 import { getMenuItems } from '../lib/firestore'
 import MenuItemRow from '../components/menu/MenuItemRow'
 import NoticeBanner from '../components/NoticeBanner'
+import OrderForm from '../components/OrderForm'
 
 export default function MenuPage() {
   const [items, setItems] = useState<MenuItem[]>([])
@@ -62,6 +63,8 @@ export default function MenuPage() {
           ))
         )}
       </div>
+
+      <OrderForm />
     </div>
   )
 }
