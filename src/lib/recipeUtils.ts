@@ -40,10 +40,10 @@ export function getBaseMaterials(
   const item = items[itemId];
   if (!item) return result;
 
-  // 直接以 itemId 查詢配方
-  if (recipes[itemId]) {
+  const recipeKey = item.r;
+  if (recipeKey !== undefined && recipes[recipeKey]) {
     visited.add(itemId);
-    const recipe = recipes[itemId];
+    const recipe = recipes[recipeKey];
     for (const ing of recipe.ings) {
       getBaseMaterials(ing.i, ing.a * amount, items, recipes, result, visited);
     }
@@ -76,11 +76,10 @@ export function getRecipeTree(
   // 防範循環依賴
   if (visited.has(itemId)) return node;
 
-  // 如果該物品有配方，則展開其成分
-  if (recipes[itemId]) {
+  const recipeKey = item?.r;
+  if (recipeKey !== undefined && recipes[recipeKey]) {
     visited.add(itemId);
-    const recipe = recipes[itemId];
-    node.ingredients = recipe.ings.map((ing) =>
+    node.ingredients = recipes[recipeKey].ings.map((ing) =>
       getRecipeTree(ing.i, ing.a * amount, items, recipes, new Set(visited))
     );
     visited.delete(itemId);
