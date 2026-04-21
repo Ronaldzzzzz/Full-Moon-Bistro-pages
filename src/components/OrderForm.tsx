@@ -14,6 +14,7 @@ export default function OrderForm({ menuItems }: OrderFormProps) {
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [submitting, setSubmitting] = useState(false)
   const [success, setSuccess] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
   const [remainingMs, setRemainingMs] = useState(0)
   const [loadingSettings, setLoadingSettings] = useState(true)
 
@@ -65,6 +66,7 @@ export default function OrderForm({ menuItems }: OrderFormProps) {
     if (remainingMs > 0 || submitting) return
     if (!customerName.trim() || selected.size === 0) return
 
+    setSubmitError(null)
     setSubmitting(true)
     try {
       const items = Array.from(selected).map(id => {
@@ -78,6 +80,8 @@ export default function OrderForm({ menuItems }: OrderFormProps) {
       setSuccess(true)
       setRemainingMs(cooldownMinutes * 60 * 1000)
       setTimeout(() => setSuccess(false), 4000)
+    } catch {
+      setSubmitError('送出失敗，請稍後再試。')
     } finally {
       setSubmitting(false)
     }
@@ -140,6 +144,11 @@ export default function OrderForm({ menuItems }: OrderFormProps) {
             </div>
           )}
         </div>
+
+        {/* 錯誤提示 */}
+        {submitError && (
+          <p className="text-[#ef9a9a] text-sm text-center mt-2">{submitError}</p>
+        )}
 
         {/* 成功提示 */}
         {success && (
