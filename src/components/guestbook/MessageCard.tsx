@@ -33,23 +33,23 @@ export default function MessageCard({ message, onDelete }: Props) {
     : ''
 
   return (
-    <div className="bg-[var(--color-bg-card)] border border-[var(--color-border-primary)] rounded p-4 transition-all hover:bg-[var(--color-bg-card-hover)] hover:shadow-[var(--shadow-glow-warm)]">
+    <div className="bg-[var(--color-bg-card)] border border-[var(--color-border-primary)] rounded p-3 sm:p-4 transition-all hover:bg-[var(--color-bg-card-hover)] hover:shadow-[var(--shadow-glow-warm)]">
       {/* 作者資訊 */}
       <div className="flex items-baseline gap-2 mb-2">
-        <span className="text-[#c9a55a] font-semibold text-base content-text">
+        <span className="text-[#c9a55a] font-semibold text-sm sm:text-base content-text">
           {message.isAnonymous ? '匿名' : message.authorId}
         </span>
         {!message.isAnonymous && message.serverName && (
-          <span className="text-[#6a5030] text-sm content-text">@{message.serverName}</span>
+          <span className="text-[#6a5030] text-xs sm:text-sm content-text">@{message.serverName}</span>
         )}
         <span className="text-[#6a5030] text-xs ml-auto">{dateStr}</span>
       </div>
 
       {/* 內容 */}
-      <p className="text-[#d4c090] text-base leading-relaxed content-text">{message.content}</p>
+      <p className="text-[#d4c090] text-sm sm:text-base leading-relaxed content-text">{message.content}</p>
 
       {/* 互動列 */}
-      <div className="flex items-center gap-3 mt-3">
+      <div className="flex items-center gap-2 sm:gap-3 mt-3">
         <button
           onClick={() => handleVote('likes')}
           disabled={!!voted}
