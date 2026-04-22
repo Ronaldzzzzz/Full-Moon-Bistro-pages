@@ -28,7 +28,6 @@ export default function MenuPage() {
 
   return (
     <div className="flex flex-col gap-8 pb-12">
-      <PhotoCard photoUrls={photoUrls} />
       {/* Banner */}
       <div className="border border-[var(--color-border-gold)] rounded p-6 text-center bg-gradient-to-r from-[var(--color-bg-card)] to-[var(--color-bg-card-hover)] shadow-[var(--shadow-glow-warm)] banner-shimmer">
         <h1 className="font-serif text-3xl md:text-4xl font-bold tracking-widest text-shimmer mb-2">✦ 月圓餐館 - FULL MOON BISTRO ✦</h1>
@@ -71,6 +70,8 @@ export default function MenuPage() {
       </div>
 
       <OrderForm menuItems={items.filter(i => i.available !== false)} />
+
+      <PhotoCard photoUrls={photoUrls} />
     </div>
   )
 }

@@ -3,9 +3,19 @@ import { getMoonPhase } from '../lib/moon'
 
 export default function MoonPhaseBackground() {
   const [phase, setPhase] = useState(0)
+  const [isMobile, setIsMobile] = useState(false)
 
   useEffect(() => {
     setPhase(getMoonPhase() % 1)
+    
+    // 检测屏幕宽度，lg 断点是 1024px
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 1024)
+    }
+    
+    handleResize()
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
   }, [])
 
   // 核心數學邏輯：
@@ -25,9 +35,9 @@ export default function MoonPhaseBackground() {
   return (
     <div className="fixed inset-0 pointer-events-none z-[-1] select-none overflow-hidden">
       <div 
-        className="absolute top-[-10%] right-[-10%] md:top-[-15%] md:right-[-5%] w-[600px] h-[600px] md:w-[1000px] md:h-[1000px]"
+        className={isMobile ? "absolute top-[-10%] left-1/2 w-[600px] h-[600px]" : "absolute top-[-15%] right-[-50px] w-[1000px] h-[1000px]"}
         style={{ 
-          transform: 'rotate(50deg)',
+          transform: isMobile ? 'translateX(-50%) rotate(50deg)' : 'rotate(50deg)',
         }}
       >
         {/* 加大畫布到 200x200，中心點在 50,50，以保持月亮大小穩定並預留光暈空間 */}

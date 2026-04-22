@@ -7,9 +7,12 @@ interface Props {
   photoUrls: PhotoUrl[]
 }
 
-const rotations = ['rotate-[-3deg]', 'rotate-[2.5deg]', 'rotate-[-2deg]', 'rotate-[1.5deg]']
+const rotations = ['rotate-[-4deg]', 'rotate-[3.5deg]', 'rotate-[-2.5deg]', 'rotate-[1.5deg]']
 // z-index 讓中間張疊在最上，視覺更自然
 const zIndexes = [1, 3, 2]
+// 水平與垂直偏移，製造桌上隨意散落的不規則感
+const offsetX = [0, 48, 12]
+const offsetY = [0, -10, 6]
 
 export default function PhotoCard({ photoUrls }: Props) {
   const [modalIndex, setModalIndex] = useState<number | null>(null)
@@ -18,12 +21,12 @@ export default function PhotoCard({ photoUrls }: Props) {
 
   return (
     <>
-      {/* 拍立得相框 - 固定於左側，手機版隱藏，靜態疊放 */}
+      {/* 拍立得相框 - 大屏幕固定於左側，中等屏幕切換到流動布局 */}
       <div
-        className="hidden md:flex flex-col items-center"
+        className="hidden lg:flex flex-col items-center"
         style={{
           position: 'fixed',
-          left: 16,
+          left: 120,
           top: '50%',
           transform: 'translateY(-50%)',
           pointerEvents: 'none',
@@ -37,7 +40,8 @@ export default function PhotoCard({ photoUrls }: Props) {
             style={{
               width: 200,
               height: 220,
-              marginTop: index === 0 ? 0 : -28,
+              marginTop: index === 0 ? 0 : -14 + (offsetY[index] ?? 0),
+              marginLeft: offsetX[index] ?? 0,
               zIndex: zIndexes[index] ?? 1,
               pointerEvents: 'auto',
               userSelect: 'none',
@@ -73,7 +77,59 @@ export default function PhotoCard({ photoUrls }: Props) {
               />
               {/* 底部白色裝飾條 */}
               <div className="flex-1 flex items-center justify-center">
-                <span className="text-[#c9a55a] text-xs font-serif tracking-widest select-none">
+                <span className="text-[#c9a55a] text-md font-serif tracking-widest select-none">
+                  ✦
+                </span>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* 手機與平板版拍立得 - 流動布局 */}
+      <div className="lg:hidden flex flex-col items-center gap-6">
+        {photoUrls.slice(0, 3).map((entry, index) => (
+          <div
+            key={entry.url}
+            className={rotations[index % rotations.length]}
+            style={{
+              width: 160,
+              height: 176,
+              zIndex: zIndexes[index] ?? 1,
+              userSelect: 'none',
+            }}
+          >
+            {/* 拍立得相框外框 */}
+            <div
+              className="bg-white shadow-xl"
+              style={{
+                width: '100%',
+                height: '100%',
+                boxSizing: 'border-box',
+                border: '2px solid #c9a55a',
+                padding: '10px 10px 0 10px',
+                display: 'flex',
+                flexDirection: 'column',
+                overflow: 'hidden',
+              }}
+            >
+              {/* 照片本體 */}
+              <div
+                role="img"
+                aria-label={`宣傳照 ${index + 1}`}
+                style={{
+                  width: '100%',
+                  height: '138px',
+                  flexShrink: 0,
+                  cursor: 'pointer',
+                  backgroundImage: `url(${entry.url})`,
+                  ...getCropStyle(entry.cropData),
+                }}
+                onClick={() => setModalIndex(index)}
+              />
+              {/* 底部白色裝飾條 */}
+              <div className="flex-1 flex items-center justify-center">
+                <span className="text-[#c9a55a] text-sm font-serif tracking-widest select-none">
                   ✦
                 </span>
               </div>
@@ -111,8 +167,8 @@ export default function PhotoCard({ photoUrls }: Props) {
                   maxHeight: '716px',
                 }}
               />
-              <div className="w-full flex items-center justify-center" style={{ height: '32px' }}>
-                <span className="text-[#c9a55a] text-sm font-serif tracking-[0.5em] select-none">
+              <div className="w-full flex items-end justify-center" style={{ height: '52px', paddingBottom: '6px' }}>
+                <span className="text-[#c9a55a] text-xl font-serif font-bold tracking-[0.5em] select-none">
                   ✦ FULL MOON BISTRO ✦
                 </span>
               </div>
