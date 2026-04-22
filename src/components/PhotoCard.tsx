@@ -1,7 +1,18 @@
 // src/components/PhotoCard.tsx
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { PhotoUrl } from '../types'
 import { getCropStyle } from '../utils/photoUtils'
+
+const CONTENT_MAX_WIDTH = 896  // max-w-4xl
+const CARD_GROUP_WIDTH = 260   // 200px card + 48px max offset + 12px padding
+
+/** 計算拍立得應擺放的 left 位置；空間不足時回傳 null（隱藏） */
+function calcDesktopLeft(windowWidth: number): number | null {
+  const leftMargin = Math.max(0, (windowWidth - CONTENT_MAX_WIDTH) / 2)
+  if (leftMargin < CARD_GROUP_WIDTH + 30) return null  // 空間不足，隱藏
+  // 將相框群置中於左側空白區，並稍微偏右讓它靠近內容
+  return Math.floor(leftMargin / 2 - CARD_GROUP_WIDTH / 2 + 16)
+}
 
 interface Props {
   photoUrls: PhotoUrl[]
@@ -16,17 +27,27 @@ const offsetY = [0, -10, 6]
 
 export default function PhotoCard({ photoUrls }: Props) {
   const [modalIndex, setModalIndex] = useState<number | null>(null)
+  const [desktopLeft, setDesktopLeft] = useState<number | null>(() => calcDesktopLeft(window.innerWidth))
+
+  useEffect(() => {
+    function handleResize() {
+      setDesktopLeft(calcDesktopLeft(window.innerWidth))
+    }
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   if (photoUrls.length === 0) return null
 
   return (
     <>
-      {/* 拍立得相框 - 大屏幕固定於左側，中等屏幕切換到流動布局 */}
+      {/* 拍立得相框 - 大屏幕固定於左側（動態計算位置），中等屏幕切換到流動布局 */}
+      {desktopLeft !== null && (
       <div
         className="hidden lg:flex flex-col items-center"
         style={{
           position: 'fixed',
-          left: 120,
+          left: desktopLeft,
           top: '50%',
           transform: 'translateY(-50%)',
           pointerEvents: 'none',
@@ -85,6 +106,7 @@ export default function PhotoCard({ photoUrls }: Props) {
           </div>
         ))}
       </div>
+      )}
 
       {/* 手機與平板版拍立得 - 流動布局 */}
       <div className="lg:hidden flex flex-col items-center gap-6">
