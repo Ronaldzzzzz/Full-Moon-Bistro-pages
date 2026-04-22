@@ -1,5 +1,5 @@
 // src/components/PhotoCard.tsx
-import { useState, useRef, useEffect } from 'react'
+import { useState } from 'react'
 import type { PhotoUrl } from '../types'
 import { getCropStyle } from '../utils/photoUtils'
 
@@ -7,113 +7,43 @@ interface Props {
   photoUrls: PhotoUrl[]
 }
 
-type Position = { x: number; y: number }
-
-const rotations = ['rotate-[-2deg]', 'rotate-[2deg]', 'rotate-[-1.5deg]', 'rotate-[1.5deg]']
+const rotations = ['rotate-[-3deg]', 'rotate-[2.5deg]', 'rotate-[-2deg]', 'rotate-[1.5deg]']
+// z-index 讓中間張疊在最上，視覺更自然
+const zIndexes = [1, 3, 2]
 
 export default function PhotoCard({ photoUrls }: Props) {
   const [modalIndex, setModalIndex] = useState<number | null>(null)
-  const [isDragging, setIsDragging] = useState(false)
-  const [positions, setPositions] = useState<Position[]>([])
-
-  // photoUrls 從 Firestore 非同步載入，需同步初始化 positions
-  useEffect(() => {
-    setPositions(current =>
-      photoUrls.map((_, index) =>
-        current[index] ?? {
-          x: Math.random() * 10,
-          y: 80 + index * 240 + Math.random() * 20,
-        }
-      )
-    )
-  }, [photoUrls.length])
-
-  const dragState = useRef<{
-    index: number
-    startMouseX: number
-    startMouseY: number
-    startPosX: number
-    startPosY: number
-    moved: boolean
-  } | null>(null)
-
-  const mouseMoveRef = useRef<((e: MouseEvent) => void) | null>(null)
-  const mouseUpRef = useRef<(() => void) | null>(null)
-
-  // Cleanup listeners on unmount to prevent memory leaks
-  useEffect(() => {
-    return () => {
-      if (mouseMoveRef.current) window.removeEventListener('mousemove', mouseMoveRef.current)
-      if (mouseUpRef.current) window.removeEventListener('mouseup', mouseUpRef.current)
-    }
-  }, [])
-
-  const handleMouseDown = (index: number) => (e: React.MouseEvent) => {
-    e.preventDefault()
-    dragState.current = {
-      index,
-      startMouseX: e.clientX,
-      startMouseY: e.clientY,
-      startPosX: positions[index].x,
-      startPosY: positions[index].y,
-      moved: false,
-    }
-
-    mouseMoveRef.current = (ev: MouseEvent) => {
-      if (!dragState.current) return
-      const dx = ev.clientX - dragState.current.startMouseX
-      const dy = ev.clientY - dragState.current.startMouseY
-      if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
-        dragState.current.moved = true
-        setIsDragging(true)
-      }
-      const newX = Math.max(0, Math.min(80, dragState.current.startPosX + dx))
-      const newY = Math.max(60, Math.min(window.innerHeight - 260, dragState.current.startPosY + dy))
-      const idx = dragState.current.index
-      setPositions(prev => {
-        const next = [...prev]
-        next[idx] = { x: newX, y: newY }
-        return next
-      })
-    }
-
-    mouseUpRef.current = () => {
-      dragState.current = null
-      setIsDragging(false)
-      if (mouseMoveRef.current) window.removeEventListener('mousemove', mouseMoveRef.current)
-      if (mouseUpRef.current) window.removeEventListener('mouseup', mouseUpRef.current)
-      mouseMoveRef.current = null
-      mouseUpRef.current = null
-    }
-
-    window.addEventListener('mousemove', mouseMoveRef.current)
-    window.addEventListener('mouseup', mouseUpRef.current)
-  }
 
   if (photoUrls.length === 0) return null
 
   return (
     <>
-      {/* 拍立得相框 - 固定於左側，手機版隱藏，可自由拖動 */}
+      {/* 拍立得相框 - 固定於左側，手機版隱藏，靜態疊放 */}
       <div
-        className="hidden md:block"
-        style={{ position: 'fixed', left: 0, top: 0, width: 280, height: '100vh', pointerEvents: 'none', zIndex: 40 }}
+        className="hidden md:flex flex-col items-center"
+        style={{
+          position: 'fixed',
+          left: 16,
+          top: '50%',
+          transform: 'translateY(-50%)',
+          pointerEvents: 'none',
+          zIndex: 40,
+        }}
       >
         {photoUrls.slice(0, 3).map((entry, index) => (
           <div
             key={entry.url}
             className={rotations[index % rotations.length]}
             style={{
-              position: 'absolute',
-              left: positions[index]?.x ?? 0,
-              top: positions[index]?.y ?? 80 + index * 240,
               width: 200,
               height: 220,
+              marginTop: index === 0 ? 0 : -28,
+              zIndex: zIndexes[index] ?? 1,
               pointerEvents: 'auto',
               userSelect: 'none',
             }}
           >
-            {/* 拍立得相框外框：填滿外層 wrapper，border-box 讓尺寸精確對齊 */}
+            {/* 拍立得相框外框 */}
             <div
               className="bg-white shadow-xl"
               style={{
@@ -141,12 +71,8 @@ export default function PhotoCard({ photoUrls }: Props) {
                 }}
                 onClick={() => setModalIndex(index)}
               />
-              {/* 底部白色文字區：拖動把手 */}
-              <div
-                className="flex-1 flex items-center justify-center"
-                style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
-                onMouseDown={handleMouseDown(index)}
-              >
+              {/* 底部白色裝飾條 */}
+              <div className="flex-1 flex items-center justify-center">
                 <span className="text-[#c9a55a] text-xs font-serif tracking-widest select-none">
                   ✦
                 </span>
