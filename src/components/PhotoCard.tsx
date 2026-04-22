@@ -127,17 +127,16 @@ export default function PhotoCard({ photoUrls }: Props) {
                 overflow: 'hidden',
               }}
             >
-              {/* 照片本體：點擊開啟 Modal */}
-              <img
-                src={entry.url}
-                alt={`宣傳照 ${index + 1}`}
-                className="object-cover"
-                draggable={false}
+              {/* 照片本體：點擊開啟 Modal，用 background-image 精確截取 cropData 區域 */}
+              <div
+                role="img"
+                aria-label={`宣傳照 ${index + 1}`}
                 style={{
                   width: '100%',
                   height: '172px',
                   flexShrink: 0,
                   cursor: 'pointer',
+                  backgroundImage: `url(${entry.url})`,
                   ...getCropStyle(entry.cropData),
                 }}
                 onClick={() => setModalIndex(index)}

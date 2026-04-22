@@ -11,6 +11,10 @@ interface CropToolProps {
   errorMessage?: string | null
 }
 
+// 拍立得圖片顯示區：176×172px（200-4border-20padding × 220-4border-10top-34bottom）
+const POLAROID_W = 176
+const POLAROID_H = 172
+
 const DEFAULT_CROP: CropData = { x: 10, y: 10, width: 80, height: 80 }
 
 function clamp(value: number, min: number, max: number): number {
@@ -22,6 +26,29 @@ export default function CropTool({ imageUrl, initialCropData, onSave, onCancel, 
 
   // 容器 ref，用於計算百分比
   const containerRef = useRef<HTMLDivElement>(null)
+  // 原圖自然尺寸 ratio（naturalHeight / naturalWidth），圖片載入後設定
+  const naturalAspectRef = useRef<number>(1)
+
+  /**
+   * 根據 widthPct 計算鎖定比例的 heightPct：
+   * - CSS frame 在容器中：frameW = (w/100)*cW, frameH = (h/100)*cH
+   * - 容器比例 cW/cH = naturalW/naturalH
+   * - 要讓 frameW/frameH = POLAROID_W/POLAROID_H：
+   *   h = w * (naturalH/naturalW) * (POLAROID_H/POLAROID_W)
+   */
+  function lockedHeight(widthPct: number): number {
+    return widthPct * (POLAROID_H / POLAROID_W) / naturalAspectRef.current
+  }
+
+  // 圖片載入後捕捉自然比例，並修正初始 cropData 的 height
+  function handleImageLoad(e: React.SyntheticEvent<HTMLImageElement>) {
+    const img = e.currentTarget
+    naturalAspectRef.current = img.naturalHeight / img.naturalWidth
+    setCropData(prev => ({
+      ...prev,
+      height: clamp(lockedHeight(prev.width), 5, 100 - prev.y),
+    }))
+  }
 
   // 拖動狀態，用 ref 避免 stale closure
   const dragState = useRef<{
@@ -78,8 +105,9 @@ export default function CropTool({ imageUrl, initialCropData, onSave, onCancel, 
         const newY = clamp(startCrop.y + dyPct, 0, 100 - startCrop.height)
         setCropData(prev => ({ ...prev, x: newX, y: newY }))
       } else {
+        // resize：僅根據水平拖動改 width，height 自動鎖定拍立得比例
         const newWidth = clamp(startCrop.width + dxPct, 10, 100 - startCrop.x)
-        const newHeight = clamp(startCrop.height + dyPct, 10, 100 - startCrop.y)
+        const newHeight = clamp(lockedHeight(newWidth), 5, 100 - startCrop.y)
         setCropData(prev => ({ ...prev, width: newWidth, height: newHeight }))
       }
     }
@@ -129,6 +157,7 @@ export default function CropTool({ imageUrl, initialCropData, onSave, onCancel, 
             src={imageUrl}
             alt="裁剪預覽"
             draggable={false}
+            onLoad={handleImageLoad}
             style={{
               display: 'block',
               maxHeight: '70vh',
@@ -175,7 +204,8 @@ export default function CropTool({ imageUrl, initialCropData, onSave, onCancel, 
             style={{ color: 'var(--color-text-muted, #a0856a)' }}
           >
             x: {roundPct(cropData.x)}%, y: {roundPct(cropData.y)}%,{' '}
-            w: {roundPct(cropData.width)}%, h: {roundPct(cropData.height)}%
+            w: {roundPct(cropData.width)}%{' '}
+            <span style={{ opacity: 0.6 }}>(比例鎖定 176:172)</span>
           </span>
 
           <div className="flex flex-col items-end gap-2">
