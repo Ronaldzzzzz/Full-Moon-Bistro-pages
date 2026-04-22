@@ -12,7 +12,7 @@ export default function Navbar() {
   }, [])
 
   const linkClass = ({ isActive }: { isActive: boolean }) =>
-    `px-3 py-1 text-sm transition-colors ${
+    `px-2 sm:px-3 py-1 text-xs sm:text-sm transition-colors ${
       isActive
         ? 'text-[var(--color-gold-light)] border-b border-[var(--color-gold-primary)]'
         : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]'
@@ -20,15 +20,15 @@ export default function Navbar() {
 
   return (
     <nav className="border-b border-[var(--color-border-primary)] bg-[var(--color-bg-primary)]">
-      <div className="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between">
+      <div className="max-w-4xl mx-auto px-4 h-12 sm:h-14 flex items-center justify-between">
         <div className="flex flex-col justify-center">
-          <span className="font-serif text-[var(--color-gold-primary)] text-xl tracking-widest flex items-center gap-1">
+          <span className="font-serif text-[var(--color-gold-primary)] text-base sm:text-lg md:text-xl tracking-widest flex items-center gap-1">
             <span className="animate-moon-pulse">🌙</span>
             FULL-MOON-BISTRO
             <span>🪕</span>
           </span>
           {address && (
-            <span className="text-[11px] text-[#9a8a70] tracking-wide leading-tight mt-0.5">
+            <span className="hidden sm:block text-[11px] text-[#9a8a70] tracking-wide leading-tight mt-0.5">
               📍 {address}
             </span>
           )}
@@ -41,7 +41,7 @@ export default function Navbar() {
             留言板
           </NavLink>
           <NavLink to="/admin" className={({ isActive }) =>
-            `ml-3 text-[#6a5030] hover:text-[#9a8060] transition-colors text-xs ${isActive ? 'text-[#9a8060]' : ''}`
+            `ml-2 sm:ml-3 text-[#6a5030] hover:text-[#9a8060] transition-colors text-xs ${isActive ? 'text-[#9a8060]' : ''}`
           }>
             ⚙
           </NavLink>
