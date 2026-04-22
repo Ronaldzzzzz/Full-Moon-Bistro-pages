@@ -48,18 +48,18 @@ export default function MessageForm({ onSubmitted }: Props) {
       </label>
 
       {!isAnonymous && (
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
           <input
             value={authorId}
             onChange={(e) => setAuthorId(e.target.value)}
             placeholder="角色 ID"
-            className="flex-1 bg-[#1a1510] border border-[#4a3820] rounded px-3 py-1.5 text-sm text-[#d4c090] placeholder-[#6a5030] focus:outline-none focus:border-[#c9a55a]"
+            className="flex-1 min-w-0 bg-[#1a1510] border border-[#4a3820] rounded px-3 py-1.5 text-sm text-[#d4c090] placeholder-[#6a5030] focus:outline-none focus:border-[#c9a55a]"
           />
           <input
             value={serverName}
             onChange={(e) => setServerName(e.target.value)}
             placeholder="伺服器名稱"
-            className="flex-1 bg-[#1a1510] border border-[#4a3820] rounded px-3 py-1.5 text-sm text-[#d4c090] placeholder-[#6a5030] focus:outline-none focus:border-[#c9a55a]"
+            className="flex-1 min-w-0 bg-[#1a1510] border border-[#4a3820] rounded px-3 py-1.5 text-sm text-[#d4c090] placeholder-[#6a5030] focus:outline-none focus:border-[#c9a55a]"
           />
         </div>
       )}
