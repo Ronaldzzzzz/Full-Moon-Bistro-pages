@@ -3,13 +3,16 @@ import { useEffect, useRef, useState } from 'react'
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
 import { storage } from '../../lib/firebase'
 import { getGlobalSettings, updateGlobalSettings } from '../../lib/firestore'
-import type { PhotoUrl } from '../../types'
+import type { CropData, PhotoUrl } from '../../types'
+import CropTool from './CropTool'
 
 export default function PhotoManager() {
   const [photoUrls, setPhotoUrls] = useState<PhotoUrl[]>([])
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [editingIndex, setEditingIndex] = useState<number | null>(null)
+  const [isSaving, setIsSaving] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   async function load() {
@@ -17,7 +20,7 @@ export default function PhotoManager() {
     try {
       const settings = await getGlobalSettings()
       setPhotoUrls(settings.photoUrls ?? [])
-    } catch (e) {
+    } catch {
       setError('載入失敗')
     } finally {
       setLoading(false)
@@ -41,12 +44,30 @@ export default function PhotoManager() {
       const newUrls = [...photoUrls, newEntry]
       await updateGlobalSettings({ photoUrls: newUrls })
       setPhotoUrls(newUrls)
-    } catch (e) {
+    } catch {
       setError('上傳失敗，請重試')
     } finally {
       setUploading(false)
       // 清空 input 讓同一檔案可重複選取
       if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+  }
+
+  async function handleSaveCrop(cropData: CropData) {
+    if (editingIndex === null) return
+    setIsSaving(true)
+    setError(null)
+    const updated = photoUrls.map((p, i) =>
+      i === editingIndex ? { ...p, cropData } : p
+    )
+    try {
+      await updateGlobalSettings({ photoUrls: updated })
+      setPhotoUrls(updated)
+      setEditingIndex(null)
+    } catch {
+      setError('儲存裁剪失敗，請重試')
+    } finally {
+      setIsSaving(false)
     }
   }
 
@@ -56,7 +77,7 @@ export default function PhotoManager() {
     try {
       await updateGlobalSettings({ photoUrls: newUrls })
       setPhotoUrls(newUrls)
-    } catch (e) {
+    } catch {
       setError('刪除失敗，請重試')
     }
   }
@@ -122,13 +143,24 @@ export default function PhotoManager() {
                   className="w-full object-cover"
                   style={{ height: '120px' }}
                 />
-                {/* 覆蓋層 - hover 顯示刪除按鈕 */}
-                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                {/* 覆蓋層 - hover 顯示操作按鈕 */}
+                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                   <button
                     onClick={() => handleDelete(entry.url)}
                     className="text-xs text-white bg-red-600/80 hover:bg-red-600 rounded px-3 py-1 transition-colors"
                   >
                     移除
+                  </button>
+                  <button
+                    onClick={() => setEditingIndex(index)}
+                    className="text-xs rounded px-3 py-1 transition-colors"
+                    style={{
+                      border: '1px solid #c9a55a',
+                      color: '#c9a55a',
+                      background: 'rgba(201,165,90,0.15)',
+                    }}
+                  >
+                    裁剪
                   </button>
                 </div>
                 <div className="px-2 py-1 text-[10px] text-[var(--color-text-muted)] truncate">
@@ -139,6 +171,17 @@ export default function PhotoManager() {
           </div>
         )}
       </div>
+
+      {editingIndex !== null && editingIndex < photoUrls.length && (
+        <CropTool
+          imageUrl={photoUrls[editingIndex].url}
+          initialCropData={photoUrls[editingIndex].cropData}
+          onSave={handleSaveCrop}
+          onCancel={() => setEditingIndex(null)}
+          isSaving={isSaving}
+          errorMessage={error}
+        />
+      )}
     </div>
   )
 }
