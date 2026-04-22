@@ -91,15 +91,15 @@ export default function OrderForm({ menuItems }: OrderFormProps) {
   const inCooldown = remainingMs > 0
 
   return (
-    <section className="mt-10">
+    <section className="mt-6 sm:mt-10">
       <div className="flex items-center gap-3 mb-4">
-        <h2 className="text-[#c9a55a] font-serif text-2xl tracking-widest">✦ 點餐</h2>
+        <h2 className="text-[#c9a55a] font-serif text-xl sm:text-2xl tracking-widest">✦ 點餐</h2>
         <div className="flex-1 h-px bg-[#4a3820] opacity-60" />
       </div>
 
       <form
         onSubmit={handleSubmit}
-        className="bg-[#2a2015] border border-[#4a3820] rounded p-5 flex flex-col gap-4"
+        className="bg-[#2a2015] border border-[#4a3820] rounded p-3 sm:p-5 flex flex-col gap-3 sm:gap-4"
       >
         {/* 客人名稱 */}
         <div className="flex flex-col gap-1">
