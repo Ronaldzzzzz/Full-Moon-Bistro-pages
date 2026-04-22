@@ -96,11 +96,16 @@ export interface Order {
   note?: string
 }
 
+/**
+ * 裁切參數，所有值均為相對於原圖的百分比（0–100）
+ * x, y: 裁切起點（左上角）
+ * width, height: 裁切區域大小
+ */
 export interface CropData {
-  x: number      // 0-100 percentage
-  y: number
-  width: number
-  height: number
+  x: number      // 0-100 百分比，相對於原圖寬度
+  y: number      // 0-100 百分比，相對於原圖高度
+  width: number  // 0-100 百分比，裁切區域寬度
+  height: number // 0-100 百分比，裁切區域高度
 }
 
 export interface PhotoUrl {

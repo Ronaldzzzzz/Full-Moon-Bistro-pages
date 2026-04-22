@@ -3,14 +3,10 @@ import { useState } from 'react'
 import type { PhotoUrl } from '../types'
 
 interface Props {
-  photoUrls: (string | PhotoUrl)[]
+  photoUrls: PhotoUrl[]
 }
 
 const rotations = ['rotate-[-2deg]', 'rotate-[2deg]', 'rotate-[-1.5deg]', 'rotate-[1.5deg]']
-
-function getUrl(entry: string | PhotoUrl): string {
-  return typeof entry === 'string' ? entry : entry.url
-}
 
 export default function PhotoCard({ photoUrls }: Props) {
   const [modalIndex, setModalIndex] = useState<number | null>(null)
@@ -23,7 +19,7 @@ export default function PhotoCard({ photoUrls }: Props) {
       <div className="hidden md:flex fixed left-4 top-1/2 -translate-y-1/2 z-10 flex-col gap-4">
         {photoUrls.slice(0, 3).map((entry, index) => (
           <button
-            key={getUrl(entry)}
+            key={entry.url}
             onClick={() => setModalIndex(index)}
             className={`
               relative cursor-pointer transition-transform duration-200
@@ -43,7 +39,7 @@ export default function PhotoCard({ photoUrls }: Props) {
             >
               {/* 照片本體 */}
               <img
-                src={getUrl(entry)}
+                src={entry.url}
                 alt={`宣傳照 ${index + 1}`}
                 className="w-full object-cover"
                 style={{ height: '120px' }}
@@ -82,7 +78,7 @@ export default function PhotoCard({ photoUrls }: Props) {
               }}
             >
               <img
-                src={getUrl(photoUrls[modalIndex])}
+                src={photoUrls[modalIndex].url}
                 alt={`宣傳照 ${modalIndex + 1}`}
                 className="w-full object-contain max-h-[70vh]"
               />

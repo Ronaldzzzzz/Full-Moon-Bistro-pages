@@ -14,7 +14,7 @@ import {
   writeBatch,
 } from 'firebase/firestore'
 import { db } from './firebase'
-import type { MenuItem, InventoryItem, Message, Reply, LiveMusicConfig, NoticeConfig, Order, GlobalSettings } from '../types'
+import type { MenuItem, InventoryItem, Message, Reply, LiveMusicConfig, NoticeConfig, Order, GlobalSettings, PhotoUrl } from '../types'
 
 // ─── Menu Items ────────────────────────────────────────────────
 
@@ -331,7 +331,8 @@ export async function getGlobalSettings(): Promise<GlobalSettings> {
   return {
     address: data?.address ?? '',
     orderCooldownMinutes: data?.orderCooldownMinutes ?? 30,
-    photoUrls: data?.photoUrls ?? [],
+    photoUrls: ((data?.photoUrls ?? []) as (string | PhotoUrl)[])
+      .map(entry => typeof entry === 'string' ? { url: entry } : entry),
   }
 }
 

@@ -10,7 +10,7 @@ import PhotoCard from '../components/PhotoCard'
 export default function MenuPage() {
   const [items, setItems] = useState<MenuItem[]>([])
   const [loading, setLoading] = useState(true)
-  const [photoUrls, setPhotoUrls] = useState<(string | PhotoUrl)[]>([])
+  const [photoUrls, setPhotoUrls] = useState<PhotoUrl[]>([])
 
   useEffect(() => {
     getMenuItems()

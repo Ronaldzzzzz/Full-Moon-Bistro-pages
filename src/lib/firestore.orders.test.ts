@@ -123,7 +123,10 @@ describe('GlobalSettings Firestore API', () => {
     expect(result).toEqual({
       address: '艾歐澤亞第三區',
       orderCooldownMinutes: 15,
-      photoUrls: ['https://example.com/photo1.jpg', 'https://example.com/photo2.jpg'],
+      photoUrls: [
+        { url: 'https://example.com/photo1.jpg' },
+        { url: 'https://example.com/photo2.jpg' },
+      ],
     })
   })
 
