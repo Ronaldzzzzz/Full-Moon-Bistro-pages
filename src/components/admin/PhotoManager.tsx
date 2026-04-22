@@ -3,9 +3,14 @@ import { useEffect, useRef, useState } from 'react'
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
 import { storage } from '../../lib/firebase'
 import { getGlobalSettings, updateGlobalSettings } from '../../lib/firestore'
+import type { PhotoUrl } from '../../types'
+
+function getUrl(entry: string | PhotoUrl): string {
+  return typeof entry === 'string' ? entry : entry.url
+}
 
 export default function PhotoManager() {
-  const [photoUrls, setPhotoUrls] = useState<string[]>([])
+  const [photoUrls, setPhotoUrls] = useState<(string | PhotoUrl)[]>([])
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -36,8 +41,9 @@ export default function PhotoManager() {
       const storageRef = ref(storage, `promotional-photos/${Date.now()}.${ext}`)
       await uploadBytes(storageRef, file)
       const url = await getDownloadURL(storageRef)
-      const newUrls = [...photoUrls, url]
-      await updateGlobalSettings({ photoUrls: newUrls })
+      const newEntry: PhotoUrl = { url }
+      const newUrls = [...photoUrls, newEntry]
+      await updateGlobalSettings({ photoUrls: newUrls.map(e => typeof e === 'string' ? { url: e } : e) })
       setPhotoUrls(newUrls)
     } catch (e) {
       setError('上傳失敗，請重試')
@@ -50,9 +56,9 @@ export default function PhotoManager() {
 
   async function handleDelete(urlToRemove: string) {
     if (!confirm('確定要移除此宣傳照？（Storage 中的檔案不會被刪除）')) return
-    const newUrls = photoUrls.filter(u => u !== urlToRemove)
+    const newUrls = photoUrls.filter(u => getUrl(u) !== urlToRemove)
     try {
-      await updateGlobalSettings({ photoUrls: newUrls })
+      await updateGlobalSettings({ photoUrls: newUrls.map(e => typeof e === 'string' ? { url: e } : e) })
       setPhotoUrls(newUrls)
     } catch (e) {
       setError('刪除失敗，請重試')
@@ -109,13 +115,13 @@ export default function PhotoManager() {
           <p className="text-[var(--color-text-muted)] text-sm text-center py-4">尚無宣傳照</p>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-            {photoUrls.map((url, index) => (
+            {photoUrls.map((entry, index) => (
               <div
-                key={url}
+                key={getUrl(entry)}
                 className="relative group border border-[var(--color-border-primary)] rounded overflow-hidden bg-[var(--color-bg-primary)]"
               >
                 <img
-                  src={url}
+                  src={getUrl(entry)}
                   alt={`宣傳照 ${index + 1}`}
                   className="w-full object-cover"
                   style={{ height: '120px' }}
@@ -123,7 +129,7 @@ export default function PhotoManager() {
                 {/* 覆蓋層 - hover 顯示刪除按鈕 */}
                 <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                   <button
-                    onClick={() => handleDelete(url)}
+                    onClick={() => handleDelete(getUrl(entry))}
                     className="text-xs text-white bg-red-600/80 hover:bg-red-600 rounded px-3 py-1 transition-colors"
                   >
                     移除

@@ -96,9 +96,21 @@ export interface Order {
   note?: string
 }
 
+export interface CropData {
+  x: number      // 0-100 percentage
+  y: number
+  width: number
+  height: number
+}
+
+export interface PhotoUrl {
+  url: string
+  cropData?: CropData
+}
+
 // 全局設定
 export interface GlobalSettings {
   address: string             // 餐廳地址（顯示於 Navbar）
   orderCooldownMinutes: number // 點餐冷卻分鐘數（預設 30）
-  photoUrls: string[]         // 宣傳全身照 URL 陣列
+  photoUrls: PhotoUrl[]       // 宣傳全身照（含可選裁切資料）
 }

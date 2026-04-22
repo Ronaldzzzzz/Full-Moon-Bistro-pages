@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react'
-import type { MenuItem } from '../types'
+import type { MenuItem, PhotoUrl } from '../types'
 import { CATEGORY_LABELS, CATEGORY_ORDER } from '../types'
 import { getMenuItems, getGlobalSettings } from '../lib/firestore'
 import MenuItemRow from '../components/menu/MenuItemRow'
@@ -10,7 +10,7 @@ import PhotoCard from '../components/PhotoCard'
 export default function MenuPage() {
   const [items, setItems] = useState<MenuItem[]>([])
   const [loading, setLoading] = useState(true)
-  const [photoUrls, setPhotoUrls] = useState<string[]>([])
+  const [photoUrls, setPhotoUrls] = useState<(string | PhotoUrl)[]>([])
 
   useEffect(() => {
     getMenuItems()
