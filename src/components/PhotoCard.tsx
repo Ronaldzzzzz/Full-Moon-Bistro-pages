@@ -67,8 +67,8 @@ export default function PhotoCard({ photoUrls }: Props) {
         dragState.current.moved = true
         setIsDragging(true)
       }
-      const newX = Math.max(0, Math.min(20, dragState.current.startPosX + dx))
-      const newY = Math.max(80, Math.min(window.innerHeight - 240, dragState.current.startPosY + dy))
+      const newX = Math.max(0, Math.min(80, dragState.current.startPosX + dx))
+      const newY = Math.max(60, Math.min(window.innerHeight - 260, dragState.current.startPosY + dy))
       const idx = dragState.current.index
       setPositions(prev => {
         const next = [...prev]
@@ -97,7 +97,7 @@ export default function PhotoCard({ photoUrls }: Props) {
       {/* 拍立得相框 - 固定於左側，手機版隱藏，可自由拖動 */}
       <div
         className="hidden md:block"
-        style={{ position: 'fixed', left: 0, top: 0, width: 220, height: '100vh', pointerEvents: 'none', zIndex: 40 }}
+        style={{ position: 'fixed', left: 0, top: 0, width: 280, height: '100vh', pointerEvents: 'none', zIndex: 40 }}
       >
         {photoUrls.slice(0, 3).map((entry, index) => (
           <div
@@ -164,7 +164,7 @@ export default function PhotoCard({ photoUrls }: Props) {
           onClick={() => setModalIndex(null)}
         >
           <div
-            className="relative max-w-screen-sm w-full mx-4"
+            className="relative max-w-screen-lg w-full mx-4"
             onClick={(e) => e.stopPropagation()}
           >
             {/* 拍立得大相框 */}
@@ -172,8 +172,8 @@ export default function PhotoCard({ photoUrls }: Props) {
               className="bg-white mx-auto shadow-2xl"
               style={{
                 border: '3px solid #c9a55a',
-                padding: '24px 24px 60px 24px',
-                maxWidth: '480px',
+                padding: '32px 32px 84px 32px',
+                maxWidth: '780px',
               }}
             >
               {/* Modal 顯示完整圖片，不套用裁切 */}
@@ -182,8 +182,8 @@ export default function PhotoCard({ photoUrls }: Props) {
                 alt={`宣傳照 ${modalIndex + 1}`}
                 className="w-full object-cover"
                 style={{
-                  maxWidth: '432px',
-                  maxHeight: '432px',
+                  maxWidth: '716px',
+                  maxHeight: '716px',
                 }}
               />
               <div className="w-full flex items-center justify-center" style={{ height: '32px' }}>
