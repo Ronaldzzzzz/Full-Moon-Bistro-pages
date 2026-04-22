@@ -22,10 +22,10 @@ export default function Navbar() {
     <nav className="border-b border-[var(--color-border-primary)] bg-[var(--color-bg-primary)]">
       <div className="max-w-4xl mx-auto px-4 h-12 sm:h-14 flex items-center justify-between">
         <div className="flex flex-col justify-center">
-          <span className="font-serif text-[var(--color-gold-primary)] text-base sm:text-lg md:text-xl tracking-widest flex items-center gap-1">
+          <span className="font-serif text-[var(--color-gold-primary)] text-sm sm:text-base md:text-xl tracking-wide sm:tracking-widest flex items-center gap-1 whitespace-nowrap">
             <span className="animate-moon-pulse">🌙</span>
             FULL-MOON-BISTRO
-            <span>🪕</span>
+            <span className="hidden sm:inline">🪕</span>
           </span>
           {address && (
             <span className="hidden sm:block text-[11px] text-[#9a8a70] tracking-wide leading-tight mt-0.5">
@@ -33,7 +33,7 @@ export default function Navbar() {
             </span>
           )}
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0">
           <NavLink to="/" className={linkClass} end>
             菜單
           </NavLink>
