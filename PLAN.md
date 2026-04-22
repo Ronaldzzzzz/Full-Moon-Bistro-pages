@@ -1,108 +1,107 @@
-# 月圓餐館 (Full Moon Bistro) V3.0 - 點餐系統與拍立得視覺計畫
+# 月圓餐館 (Full Moon Bistro) V3.1 - PhotoCard 增強計畫
 
-> **實作指南:** 建議使用 `activate_skill:executing-plans` 逐步執行此計畫。步驟採用 Checkbox (`- [ ]`) 語法追蹤進度。
+> **實作指南:** 採用 Subagent-Driven 或 Executing-Plans 逐步執行實作計畫。步驟詳見 `docs/superpowers/plans/2026-04-22-photocard-enhancement-plan.md`
 
-**目標:** 
-1. 建立簡易點餐系統 (支援 LocalStorage 冷卻與後台管理)。
-2. 實作拍立得風格的角色全身照展示，並整合 Firebase Storage 讓後台可直接更換圖片。
-3. 更新 Header，實現標題放大與後台可調式的地址顯示。
+**目標:**
+1. 放大拍立得尺寸 (w100×h120 → w200×h220)
+2. 實作左側區域內自由拖動 (200px寬，上下邊界，位置獨立)
+3. 後台非破壞性圖片裁剪工具 (紅框選區，儲存 cropData 參數)
 
 **架構設計:**
-- **點餐系統**: 新增 `orders` 集合，記錄點餐 ID、品項與時間。
-- **配置系統**: 使用 `settings/global` 儲存地址、冷卻分鐘數及照片 URL。
-- **儲存系統**: 整合 Firebase Storage 儲存宣傳全身照。
-- **視覺層**: 實作 `PhotoCards.tsx` 裝飾組件。
+- **資料層**: 擴展 `GlobalSettings.photoUrls` 型別，支援每張圖片的 cropData 參數
+- **視覺層**: PhotoCard 元件升級尺寸、拖動邏輯、cropData 應用
+- **管理層**: 新建 CropTool 元件，整合至 PhotoManager 後台流程
+
+**設計文檔**: `docs/superpowers/specs/2026-04-22-photocard-enhancement-design.md`  
+**實作計畫**: `docs/superpowers/plans/2026-04-22-photocard-enhancement-plan.md`
 
 ---
 
-### Task 1: 基礎配置與資料結構 (Base Config & DB) ✅ [DONE]
+## 待實作任務
 
-- [x] **Step 1: 更新 `src/types/index.ts`**
-定義 `Order`, `GlobalSettings` 介面。
-- [x] **Step 2: 初始化 Firestore 設定**
-在 Firestore `settings` 集合建立 `global` 文件，包含預設地址與冷卻時間。
-- [x] **Step 3: 修改 `src/lib/firestore.ts`**
-新增 `getGlobalSettings`, `updateGlobalSettings`, `addOrder`, `getOrders`, `deleteOrder` 等 API。
+### Task 1: 型別定義擴展 (Type Definitions)
+- [ ] 在 `src/types/index.ts` 新增 `CropData` 與 `PhotoUrl` 介面
+- [ ] 更新 `GlobalSettings` 型別：`photoUrls: string[]` → `photoUrls: PhotoUrl[]`
+- [ ] 驗證 TypeScript 編譯無誤
 
-**commit**: `5d4ddac` feat(v3): add Order and GlobalSettings types and Firestore functions
+### Task 2: Firestore 函式驗證 (Compatibility Check)
+- [ ] 確認 `getGlobalSettings` 與 `updateGlobalSettings` 相容新型別
+- [ ] 驗證序列化/反序列化正確
 
----
+### Task 3: PhotoCard 元件升級 - 尺寸 (Size Update)
+- [ ] 更新左側拍立得寬度：100px → 200px
+- [ ] 更新左側拍立得高度：120px → 220px
+- [ ] 更新 Modal 相框尺寸與 padding（比例對應）
+- [ ] 編譯與視覺驗證
 
-### Task 2: 點餐系統實作 (Ordering System) ✅ [DONE]
+### Task 4: PhotoCard 元件升級 - 拖動 (Drag Logic)
+- [ ] 添加拖動狀態管理（positions, dragState）
+- [ ] 實作滑鼠事件處理（mouseDown, mouseMove, mouseUp）
+- [ ] 邊界檢驗邏輯（左側 200px，上下邊界）
+- [ ] 更新 JSX 應用 absolute positioning
+- [ ] 全域事件監聽（useEffect cleanup）
+- [ ] 本地測試與 commit
 
-- [x] **Step 1: 開發 `OrderForm.tsx` 組件**
-1. 讓客人輸入 ID 名稱。
-2. 串接現有菜單提供勾選。
-3. 實作 LocalStorage 檢查邏輯：點餐後記錄 `lastOrderTime`，若未達冷卻時間則禁止提交。
-- [x] **Step 2: 開發 `OrderManager.tsx` (後台)**
-1. 條列式顯示訂單。
-2. 支援按時間由新到舊排序。
-3. 加入「一鍵刪除」處理完畢的訂單。
+### Task 5: PhotoCard 元件升級 - cropData 支援 (Crop Support)
+- [ ] 更新 Props 相容 `string | PhotoUrl`
+- [ ] 實作 `getCropObjectPosition` 與 `getPhotoUrl` 工具函式
+- [ ] 應用 CSS `object-position` 樣式
+- [ ] 同時更新左側與 Modal 圖片
+- [ ] 編譯驗證
 
-**commits**: `05aa52b` feat: implement order form and order manager for v3 ordering system | `3ba8760` fix: 修正 addOrder 型別簽名與 getGlobalSettings 不安全型別轉型，新增 orders/globalSettings 測試
+### Task 6: CropTool 元件實作 (Crop Editor)
+- [ ] 建立 `src/components/admin/CropTool.tsx`
+- [ ] Props 設計：imageUrl, initialCropData, onSave, onCancel
+- [ ] 狀態管理：cropData, isDragging, dragType
+- [ ] 拖動邏輯：move（改位置）、resize（改大小）
+- [ ] JSX：圖片容器、紅框、把手、參數顯示、按鈕區
+- [ ] 單元測試（CropTool.test.tsx）
+- [ ] commit
 
----
+### Task 7: PhotoManager 整合 CropTool (Integration)
+- [ ] 添加裁剪編輯狀態（editingIndex, editingCropData）
+- [ ] 導入 CropTool 元件
+- [ ] 實作 `handleEditCrop`, `handleSaveCrop`, `handleCancelCrop` 回調
+- [ ] 在圖片列表添加「編輯裁剪」按鈕
+- [ ] 添加裁剪 Modal JSX
+- [ ] 編譯驗證
 
-### Task 3: 拍立得視覺與圖片管理 (Visual & Storage) ✅ [DONE]
+### Task 8: 型別相容性與資料遷移 (Compatibility)
+- [ ] 確保 MenuPage 正確接收與傳遞新型別
+- [ ] 驗證舊資料（string[]）向下相容新邏輯
+- [ ] 端到端流程測試
 
-- [x] **Step 1: 配置 Firebase Storage**
-確保環境變數 `VITE_FIREBASE_STORAGE_BUCKET` 已設定。
-- [x] **Step 2: 開發 `PhotoCard.tsx` 裝飾組件**
-1. 實作拍立得相框視覺（金邊、白色邊框、微旋轉）。
-2. 避開右上方月亮，預設放置於頁面左下方。
-3. 加入點擊放大查看全圖的 Modal。
-- [x] **Step 3: 開發後台圖片管理功能**
-1. 提供圖片選擇與上傳按鈕。
-2. 上傳至 Storage 後更新 `settings/global` 中的 `photoUrls`。
+### Task 9: 測試與驗證 (Testing & QA)
+- [ ] 寫 PhotoCard 尺寸測試
+- [ ] 寫拖動邏輯測試
+- [ ] 寫後台裁剪整合測試
+- [ ] 執行全部測試：`npx vitest run`
+- [ ] Linting 檢查：`npm run lint`
+- [ ] Build 驗證：`npm run build`
+- [ ] 視覺驗證清單（尺寸、拖動、裁剪、即時更新）
 
-**commits**: `1f2ea45` feat(v3): implement PhotoCard polaroid display and PhotoManager upload for Task 3 | `d69e8b4` fix: mount PhotoManager in AdminPage and patch Storage filename & rotations
-
----
-
-### Task 4: Header 優化與全局設定 (Header & Settings) ✅ [DONE]
-
-- [x] **Step 1: 修改 `Navbar.tsx` (或 Header 元件)**
-1. 從 Firestore 讀取 `address` 並動態顯示。
-2. 放大標題字體，並優化地址文字排版。
-3. 添加條件式訂購按鈕（基於全局設定）。
-- [x] **Step 2: 整合後台設定頁面**
-新增 `GlobalSettingsManager` 分頁，用於修改地址、冷卻時間、運費、最小訂購金額及更換宣傳照。
-
-**commit**: `a6486e9` feat: add GlobalSettingsManager with Navbar integration | `6dd9e28` Merge branch 'feature/v3-ordering'
-
-**測試**: Navbar.test.tsx, AdminPage.test.tsx, GlobalSettingsManager.test.tsx 已完成
-
----
-
-### Task 5: 整合驗證與部署 ⏳ [PENDING]
-
-- [ ] **Step 1: 測試點餐流程與冷卻機制。**
-  - 在本地測試訂購表單的冷卻邏輯
-  - 驗證 LocalStorage 持久化
-  - 驗證 Firestore `orders` 資料寫入
-  
-- [ ] **Step 2: 驗證圖片上傳與前台即時更新。**
-  - 測試 PhotoManager 的上傳流程
-  - 驗證 PhotoCard 即時渲染新圖片
-  - 檢查 Storage 中的檔案結構
-  
-- [ ] **Step 3: 執行 Build 並部署至 GitHub Pages。**
-  - 執行 `npm run build` 確保無編譯錯誤
-  - 執行 `npm run lint` 通過代碼檢查
-  - 執行 `npx vitest run` 確保所有測試通過
-  - 推送到 GitHub (main) 觸發自動部署
+### Task 10: 最終整合與清理 (Final Cleanup)
+- [ ] 代碼審查清單（註釋、型別、cleanup）
+- [ ] 文檔更新（如需）
+- [ ] 確認未破壞現有功能
+- [ ] 最終 commit 與推送
 
 ---
 
-## 進度統計
+## 進度追蹤
 
-| Task | 狀態 | Commits | 說明 |
-|------|------|---------|------|
-| Task 1 | ✅ DONE | 1 | 資料模型與 Firestore API 完成 |
-| Task 2 | ✅ DONE | 3 | 訂購系統全面實作 |
-| Task 3 | ✅ DONE | 2 | 拍立得視覺與相片管理完成 |
-| Task 4 | ✅ DONE | 2 | Navbar 整合與全局設定完成 |
-| Task 5 | ⏳ PENDING | - | 待測試與部署驗證 |
+| Task | 狀態 | 預期 commits |
+|------|------|----------|
+| Task 1 | ⏳ PENDING | 1 |
+| Task 2 | ⏳ PENDING | 0-1 |
+| Task 3 | ⏳ PENDING | 1 |
+| Task 4 | ⏳ PENDING | 1 |
+| Task 5 | ⏳ PENDING | 1 |
+| Task 6 | ⏳ PENDING | 1 |
+| Task 7 | ⏳ PENDING | 1 |
+| Task 8 | ⏳ PENDING | 0-1 |
+| Task 9 | ⏳ PENDING | 1 |
+| Task 10 | ⏳ PENDING | 0-1 |
 
-**當前 main 分支**: 領先 origin/main 12 commits (commit 6dd9e28)
-**worktree 狀態**: 已清理，feature/v3-ordering 已合併
+**當前分支**: main (commit 6dd9e28)  
+**下一步**: 啟動 Subagent-Driven 或 Executing-Plans 執行實作計畫
