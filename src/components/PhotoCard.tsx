@@ -108,8 +108,8 @@ export default function PhotoCard({ photoUrls }: Props) {
       </div>
       )}
 
-      {/* 手機與平板版拍立得 - 流動布局 */}
-      <div className="lg:hidden flex flex-col items-center gap-6">
+      {/* 手機/平板版拍立得，或桌面空間不足時也顯示於底部 */}
+      <div className={`flex flex-col items-center gap-6 ${desktopLeft !== null ? 'lg:hidden' : ''}`}>
         {photoUrls.slice(0, 3).map((entry, index) => (
           <div
             key={entry.url}
