@@ -9,7 +9,7 @@ interface Props {
 
 const HISTORY_PAGE_SIZE = 10
 
-export default function OrderManager({ session, realModeEnabled }: Props) {
+export default function OrderManager({ session: _session, realModeEnabled }: Props) {
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
   const [deleting, setDeleting] = useState<string | null>(null)

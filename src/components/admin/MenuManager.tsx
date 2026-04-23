@@ -4,11 +4,13 @@ import {
   addMenuItem,
   updateMenuItem,
   deleteMenuItem,
+  getInventoryItems,
 } from '../../lib/firestore'
-import type { MenuItem, MenuCategory } from '../../types'
+import type { MenuItem, MenuCategory, InventoryItem } from '../../types'
 import { CATEGORY_LABELS, CATEGORY_ORDER } from '../../types'
 import ItemSearchBox from './ItemSearchBox'
 import RecipeTreeSelector from './RecipeTreeSelector'
+import CraftModal from './CraftModal'
 import { getRecipeTree } from '../../lib/recipeUtils'
 import type { MasterItem, MasterRecipe, RecipeTreeNode } from '../../lib/recipeUtils'
 
@@ -32,6 +34,8 @@ export default function MenuManager() {
   const [form, setForm] = useState(EMPTY_FORM)
   const [saving, setSaving] = useState(false)
   const [showForm, setShowForm] = useState(false)
+  const [craftTarget, setCraftTarget] = useState<MenuItem | null>(null)
+  const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([])
 
   const [masterData, setMasterData] = useState<{
     items: Record<number, MasterItem>;
@@ -44,8 +48,9 @@ export default function MenuManager() {
 
   async function load() {
     setLoading(true)
-    const data = await getMenuItems()
+    const [data, inv] = await Promise.all([getMenuItems(), getInventoryItems()])
     setItems(data)
+    setInventoryItems(inv)
     setLoading(false)
   }
 
@@ -307,7 +312,7 @@ export default function MenuManager() {
                       <div className="text-[#d4c090] text-lg font-bold truncate">
                         {item.alias ? (
                           <span className="text-[#f4e38e]">
-                            {item.alias} 
+                            {item.alias}
                             <small className="text-[#6a5030] ml-2 font-normal opacity-70 text-sm">
                               ({item.name})
                             </small>
@@ -316,11 +321,30 @@ export default function MenuManager() {
                           item.name
                         )}
                       </div>
-                      <div className="text-[#c9a55a] text-sm font-medium mt-0.5">{item.price} gil</div>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="text-[#c9a55a] text-sm font-medium">{item.price} gil</span>
+                        {item.stock !== undefined && (
+                          <span className={`text-xs px-1.5 py-0.5 rounded border ${
+                            (item.stock ?? 0) > 0
+                              ? 'text-[#81c784] border-[#3a5a3a]'
+                              : 'text-[#ef9a9a] border-[#6a3030]'
+                          }`}>
+                            庫存 {item.stock ?? 0}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <button 
-                        onClick={() => handleToggle(item)} 
+                    <div className="flex items-center gap-2 flex-wrap justify-end">
+                      {(item.ingredients?.length ?? 0) > 0 && (
+                        <button
+                          onClick={() => setCraftTarget(item)}
+                          className="text-sm text-[#c9a55a] border border-[#6a5030] hover:bg-[#2a2015] px-3 py-1 rounded transition-colors"
+                        >
+                          製作
+                        </button>
+                      )}
+                      <button
+                        onClick={() => handleToggle(item)}
                         className={`text-sm px-3 py-1 rounded-md font-medium transition-colors ${item.available ? 'bg-[#1e3a1e] text-[#81c784] hover:bg-[#254a25]' : 'bg-[#3a1e1e] text-[#ef9a9a] hover:bg-[#4a2222]'}`}
                       >
                         {item.available ? '供應中' : '已下架'}
@@ -334,6 +358,15 @@ export default function MenuManager() {
             </div>
           ) : null
         )
+      )}
+
+      {craftTarget && (
+        <CraftModal
+          menuItem={craftTarget}
+          inventoryItems={inventoryItems}
+          onClose={() => setCraftTarget(null)}
+          onCrafted={load}
+        />
       )}
     </div>
   )
