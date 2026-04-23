@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { getNotices, addNotice, updateNotice, getGlobalSettings, updateGlobalSettings } from '../../lib/firestore'
 import type { NoticeConfig } from '../../types'
+import { useToast } from '../../hooks/useToast'
+import Toast from '../Toast'
 
 export default function NoticeManager() {
   const [notice, setNotice] = useState<NoticeConfig | null>(null)
@@ -11,6 +13,7 @@ export default function NoticeManager() {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [loading, setLoading] = useState(true)
+  const { toast, showToast } = useToast()
 
   useEffect(() => {
     Promise.all([getNotices(), getGlobalSettings()]).then(([notices, settings]) => {
@@ -43,7 +46,7 @@ export default function NoticeManager() {
       setTimeout(() => setSaved(false), 2000)
     } catch (err) {
       console.error(err)
-      alert('儲存失敗')
+      showToast('儲存失敗', 'error')
     } finally {
       setSaving(false)
     }
@@ -123,6 +126,7 @@ export default function NoticeManager() {
         </button>
         {saved && <span className="text-green-400 text-xs">✓ 已儲存</span>}
       </div>
+      <Toast toast={toast} />
     </div>
   )
 }

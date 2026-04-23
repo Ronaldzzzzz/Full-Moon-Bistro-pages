@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef, useMemo } from 'react'
+import { useEffect, useState, useRef, useMemo } from 'react'
 import {
   getInventoryItems,
   addInventoryItem,
@@ -9,6 +9,8 @@ import {
 } from '../../lib/firestore'
 import type { InventoryItem, MenuItem } from '../../types'
 import type { MasterRecipe } from '../../lib/recipeUtils'
+import { useToast } from '../../hooks/useToast'
+import Toast from '../Toast'
 
 const EMPTY_FORM = {
   name: '',
@@ -33,15 +35,8 @@ export default function InventoryManager() {
   const [showForm, setShowForm] = useState(false)
   const [viewMode, setViewMode] = useState<'tree' | 'list'>('tree')
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
-  const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null)
-  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const { toast, showToast } = useToast()
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  const showToast = useCallback((msg: string, type: 'success' | 'error' = 'success') => {
-    if (toastTimerRef.current) clearTimeout(toastTimerRef.current)
-    setToast({ msg, type })
-    toastTimerRef.current = setTimeout(() => setToast(null), 3000)
-  }, [])
 
   async function load() {
     setLoading(true)
@@ -62,10 +57,7 @@ export default function InventoryManager() {
     }
   }
 
-  useEffect(() => { 
-    load()
-    return () => { if (toastTimerRef.current) clearTimeout(toastTimerRef.current) }
-  }, [])
+  useEffect(() => { load() }, [])
 
   // 1. 計算全菜單的總需求量
   const totalDemands = useMemo(() => {
@@ -296,11 +288,7 @@ export default function InventoryManager() {
         </div>
       )}
 
-      {toast && (
-        <div className={`fixed bottom-6 right-6 px-4 py-2 rounded shadow-2xl z-[9999] animate-bounce-in ${toast.type === 'success' ? 'bg-[#1e3a1e] text-[#81c784] border border-[#81c784]/30' : 'bg-[#3a1e1e] text-[#ef9a9a] border border-[#ef9a9a]/30'}`}>
-          <div className="flex items-center gap-2 text-sm font-medium"><span>{toast.type === 'success' ? '✅' : '❌'}</span>{toast.msg}</div>
-        </div>
-      )}
+      <Toast toast={toast} />
     </div>
   );
 }

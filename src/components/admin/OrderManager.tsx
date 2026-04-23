@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import type { Order, AdminSession } from '../../types'
 import { getOrders, deleteOrder, completeOrder, deleteOrderAndRestoreStock } from '../../lib/firestore'
 import { ACTIVE_ORDER_WINDOW_MS } from '../../lib/constants'
+import { useToast } from '../../hooks/useToast'
+import Toast from '../Toast'
 
 interface Props {
   session: AdminSession
@@ -20,6 +22,7 @@ export default function OrderManager({ session: _session, realModeEnabled }: Pro
   const [historyPage, setHistoryPage] = useState(0)
   const [selectedHistoryIds, setSelectedHistoryIds] = useState<Set<string>>(new Set())
   const [batchDeleting, setBatchDeleting] = useState(false)
+  const { toast, showToast } = useToast()
 
   async function load() {
     setLoading(true)
@@ -44,7 +47,7 @@ export default function OrderManager({ session: _session, realModeEnabled }: Pro
       setOrders(prev => prev.map(o => o.id === id ? { ...o, status: 'completed' as const } : o))
     } catch (err) {
       console.error('完成訂單失敗:', err)
-      alert('操作失敗，請稍後再試。')
+      showToast('操作失敗，請稍後再試。', 'error')
     } finally {
       setCompleting(null)
     }
@@ -62,7 +65,7 @@ export default function OrderManager({ session: _session, realModeEnabled }: Pro
       setOrders(prev => prev.filter(o => o.id !== order.id))
     } catch (err) {
       console.error('刪除訂單失敗:', err)
-      alert('刪除失敗，請稍後再試。')
+      showToast('刪除失敗，請稍後再試。', 'error')
     } finally {
       setDeleting(null)
     }
@@ -78,7 +81,7 @@ export default function OrderManager({ session: _session, realModeEnabled }: Pro
       setSelectedHistoryIds(new Set())
     } catch (err) {
       console.error('批量刪除失敗:', err)
-      alert('部分刪除失敗，請重新整理後確認。')
+      showToast('部分刪除失敗，請重新整理後確認。', 'error')
     } finally {
       setBatchDeleting(false)
     }
@@ -331,6 +334,7 @@ export default function OrderManager({ session: _session, realModeEnabled }: Pro
           )}
         </div>
       )}
+      <Toast toast={toast} />
     </div>
   )
 }

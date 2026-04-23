@@ -2,6 +2,8 @@
 import { useEffect, useState } from 'react'
 import { getAdmins, addAdmin, deleteAdmin } from '../../lib/firestore'
 import { hashPassword } from '../../lib/auth'
+import { useToast } from '../../hooks/useToast'
+import Toast from '../Toast'
 
 interface AdminAccount {
   id: string; // This is the hash
@@ -16,6 +18,7 @@ export default function AdminManager() {
   const [newLabel, setNewLabel] = useState('')
   const [newRole, setNewRole] = useState<'owner' | 'staff'>('staff')
   const [saving, setSaving] = useState(false)
+  const { toast, showToast } = useToast()
 
   async function load() {
     setLoading(true)
@@ -44,7 +47,7 @@ export default function AdminManager() {
 
   async function handleDeleteAdmin(hash: string) {
     if (admins.length <= 1) {
-      alert('至少必須保留一個管理員帳號！')
+      showToast('至少必須保留一個管理員帳號！', 'error')
       return
     }
     if (!confirm('確定要刪除此管理員帳號？刪除後對應的密碼將失效。')) return
@@ -151,6 +154,7 @@ export default function AdminManager() {
           </tbody>
         </table>
       </div>
+      <Toast toast={toast} />
     </div>
   )
 }
