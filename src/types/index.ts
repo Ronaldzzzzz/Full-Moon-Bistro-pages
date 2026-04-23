@@ -86,7 +86,7 @@ export interface NoticeConfig {
   emoji: string
   lines: string[]
   isActive: boolean
-  updatedAt: any
+  updatedAt: Timestamp | Date
 }
 
 // 點餐訂單

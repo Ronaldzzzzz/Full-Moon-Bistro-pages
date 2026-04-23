@@ -55,7 +55,7 @@ async function syncInventoryFromIngredients(itemName: string, ingredients: MenuI
   const processedIds = new Set<number>() // 追蹤此批次已處理的 ID
 
   // 1. 載入 master_items.json 獲取真實資訊
-  let masterItems: Record<string, { n: string; i: string }> = {}
+  let masterItems: Record<string, { n: string; i?: string }> = {}
   try {
     const res = await fetch('/Full-Moon-Bistro-pages/data/master_items.json')
     if (res.ok) {
@@ -79,9 +79,8 @@ async function syncInventoryFromIngredients(itemName: string, ingredients: MenuI
     const iconPath = masterData ? masterData.i : undefined
 
     if (!existingItem) {
-      // 若不存在則建立
       const newRef = doc(collection(db, 'inventory'))
-      const newItemData: any = {
+      const newItemData: Omit<InventoryItem, 'id'> & { icon?: string } = {
         name: realName,
         stock: 0,
         note: `${itemName}`,
@@ -91,9 +90,8 @@ async function syncInventoryFromIngredients(itemName: string, ingredients: MenuI
 
       batch.set(newRef, newItemData)
       hasOps = true
-      } else {
-      // 若已存在但資訊不全，則更新。備註若原本是自動匯入的也可以更新。
-      const updates: any = {}
+    } else {
+      const updates: Partial<Omit<InventoryItem, 'id'>> & { icon?: string } = {}
       let needsUpdate = false
 
       if (existingItem.name === `食材 #${ing.id}` && masterData) {

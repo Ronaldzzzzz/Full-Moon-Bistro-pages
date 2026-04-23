@@ -20,8 +20,12 @@ const EMPTY_FORM = {
 
 
 interface InventoryNode extends InventoryItem {
-  children: InventoryNode[];
-  totalDemand?: number; // 動態計算的需求量
+  children: InventoryNode[]
+  totalDemand?: number
+}
+
+interface DisplayNode extends InventoryNode {
+  docIds?: string[]
 }
 
 export default function InventoryManager() {
@@ -101,9 +105,9 @@ export default function InventoryManager() {
   }, [items, masterRecipes, totalDemands]);
 
   // 3. 模式切換邏輯 (注入需求量並加總)
-  const displayItems = useMemo(() => {
+  const displayItems = useMemo<DisplayNode[]>(() => {
     if (viewMode === 'tree') return inventoryTrees;
-    const groups: Record<string, any> = {};
+    const groups: Record<string, DisplayNode & { rawNotes: string[] }> = {};
     items.forEach(item => {
       const key = item.recipeIngredientId ? `id_${item.recipeIngredientId}` : `name_${item.name}`;
       if (!groups[key]) {
@@ -132,7 +136,7 @@ export default function InventoryManager() {
     }).sort((a, b) => a.name.localeCompare(b.name));
   }, [items, viewMode, inventoryTrees, totalDemands]);
 
-  const handleQuickStockUpdate = (item: any, newStock: number) => {
+  const handleQuickStockUpdate = (item: DisplayNode, newStock: number) => {
     if (newStock < 0) return;
     const diff = newStock - item.stock;
     const docIds = item.docIds || [item.id];
@@ -175,7 +179,7 @@ export default function InventoryManager() {
     }
   }
 
-  const renderNode = (node: any, level: number = 0) => {
+  const renderNode = (node: DisplayNode, level: number = 0) => {
     const isSelected = selectedIds.has(node.id);
     const isUnderstocked = node.totalDemand > 0 && node.stock < node.totalDemand;
 
@@ -218,7 +222,7 @@ export default function InventoryManager() {
         </div>
         {node.children && node.children.length > 0 && (
           <div className="flex flex-col mt-1">
-            {node.children.map((child: any) => renderNode(child, level + 1))}
+            {node.children.map((child) => renderNode(child, level + 1))}
           </div>
         )}
       </div>
