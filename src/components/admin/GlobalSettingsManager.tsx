@@ -6,6 +6,7 @@ import PhotoManager from './PhotoManager'
 export default function GlobalSettingsManager() {
   const [address, setAddress] = useState('')
   const [cooldown, setCooldown] = useState(30)
+  const [realModeEnabled, setRealModeEnabled] = useState(false)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -17,6 +18,7 @@ export default function GlobalSettingsManager() {
       .then(s => {
         setAddress(s.address ?? '')
         setCooldown(s.orderCooldownMinutes ?? 30)
+        setRealModeEnabled(s.realModeEnabled ?? false)
         setHasLoadedSettings(true)
       })
       .catch(() => setError('載入設定失敗'))
@@ -29,7 +31,7 @@ export default function GlobalSettingsManager() {
     setError(null)
     setSaved(false)
     try {
-      await updateGlobalSettings({ address, orderCooldownMinutes: cooldown })
+      await updateGlobalSettings({ address, orderCooldownMinutes: cooldown, realModeEnabled })
       setSaved(true)
       setTimeout(() => setSaved(false), 2000)
     } catch {
@@ -86,6 +88,34 @@ export default function GlobalSettingsManager() {
             <span className="text-[var(--color-text-muted)] text-xs">分鐘（0 = 無冷卻）</span>
           </div>
           <p className="text-[#6a5030] text-[11px]">同一客人在此時間內只能點一次餐。</p>
+        </div>
+
+        {/* 庫存模式開關 */}
+        <div className="flex flex-col gap-1.5">
+          <label className="text-[var(--color-text-muted)] text-xs tracking-wide">
+            庫存模式
+          </label>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setRealModeEnabled(v => !v)}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                realModeEnabled ? 'bg-[#c9a55a]' : 'bg-[#4a3820]'
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  realModeEnabled ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
+            </button>
+            <span className="text-[var(--color-text-muted)] text-xs">
+              {realModeEnabled ? '真實模式（訂單自動扣菜品庫存）' : '簡易模式（不連動庫存）'}
+            </span>
+          </div>
+          <p className="text-[#6a5030] text-[11px]">
+            真實模式啟用時，客人下單會扣除菜品庫存；刪除未完成訂單會退還庫存。
+          </p>
         </div>
 
         {/* 儲存按鈕 */}
