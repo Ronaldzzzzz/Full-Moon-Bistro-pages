@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import type { Order, AdminSession } from '../../types'
 import { getOrders, deleteOrder, completeOrder, deleteOrderAndRestoreStock } from '../../lib/firestore'
+import { ACTIVE_ORDER_WINDOW_MS } from '../../lib/constants'
 
 interface Props {
   session: AdminSession
@@ -114,14 +115,13 @@ export default function OrderManager({ session: _session, realModeEnabled }: Pro
   }
 
   const now = Date.now()
-  const cutoffMs = 24 * 60 * 60 * 1000
   const activeOrders = orders.filter(o => {
     const t = o.timestamp?.toDate?.()?.getTime?.() ?? now
-    return (now - t) < cutoffMs
+    return (now - t) < ACTIVE_ORDER_WINDOW_MS
   })
   const historicalOrders = orders.filter(o => {
     const t = o.timestamp?.toDate?.()?.getTime?.() ?? now
-    return (now - t) >= cutoffMs
+    return (now - t) >= ACTIVE_ORDER_WINDOW_MS
   })
   const totalHistoryPages = Math.ceil(historicalOrders.length / HISTORY_PAGE_SIZE)
   const pagedHistory = historicalOrders.slice(

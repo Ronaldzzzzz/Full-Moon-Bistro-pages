@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import type { MenuItem } from '../types'
 import { addOrder, addOrderWithStockDeduction, getGlobalSettings } from '../lib/firestore'
+import { isOutOfStock } from '../lib/constants'
 
 const LS_KEY = 'lastOrderTime'
 
@@ -130,12 +131,12 @@ export default function OrderForm({ menuItems }: OrderFormProps) {
           ) : (
             <div className="flex flex-col gap-1.5 max-h-64 overflow-y-auto pr-1">
               {menuItems.map(item => {
-                const isOutOfStock = realModeEnabled && !item.unlimited && (item.stock ?? 0) <= 0
+                const outOfStock = isOutOfStock(item, realModeEnabled)
                 return (
                   <label
                     key={item.id}
                     className={`flex items-center gap-3 px-3 py-2 rounded transition-colors ${
-                      isOutOfStock
+                      outOfStock
                         ? 'bg-[#1e1810] border border-[#3a2c1a] opacity-50 cursor-not-allowed'
                         : selected.has(item.id)
                           ? 'bg-[#3a2c10] border border-[#c9a55a] cursor-pointer'
@@ -145,14 +146,14 @@ export default function OrderForm({ menuItems }: OrderFormProps) {
                     <input
                       type="checkbox"
                       checked={selected.has(item.id)}
-                      onChange={() => !isOutOfStock && toggleItem(item.id)}
-                      disabled={isOutOfStock}
+                      onChange={() => !outOfStock && toggleItem(item.id)}
+                      disabled={outOfStock}
                       className="accent-[#c9a55a]"
                     />
-                    <span className={`flex-1 text-sm ${isOutOfStock ? 'text-[#6a5030]' : 'text-[#d4c090]'}`}>
+                    <span className={`flex-1 text-sm ${outOfStock ? 'text-[#6a5030]' : 'text-[#d4c090]'}`}>
                       {item.alias || item.name}
                     </span>
-                    {isOutOfStock ? (
+                    {outOfStock ? (
                       <span className="text-xs text-[#ef9a9a] border border-[#6a3030] rounded px-1.5 py-0.5">
                         缺貨
                       </span>

@@ -1,4 +1,5 @@
 import type { MenuItem } from '../../types'
+import { isOutOfStock } from '../../lib/constants'
 
 interface Props {
   item: MenuItem
@@ -6,15 +7,15 @@ interface Props {
 }
 
 export default function MenuItemRow({ item, realModeEnabled = false }: Props) {
-  const isOutOfStock = realModeEnabled && !item.unlimited && (item.stock ?? 0) <= 0
-  const dimmed = !item.available || isOutOfStock
+  const outOfStock = isOutOfStock(item, realModeEnabled)
+  const dimmed = !item.available || outOfStock
 
   let statusLabel: string
   let statusClass: string
   if (!item.available) {
     statusLabel = '已售完'
     statusClass = 'bg-[#3a1e1e] text-[#ef9a9a]'
-  } else if (isOutOfStock) {
+  } else if (outOfStock) {
     statusLabel = '缺貨'
     statusClass = 'bg-[#3a1e1e] text-[#ef9a9a]'
   } else {
