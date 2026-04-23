@@ -29,13 +29,17 @@ interface Props {
 
 // ─── Algorithm ─────────────────────────────────────────────────
 
+const MAX_CRAFT_DEPTH = 8
+
 function buildNode(
   itemId: number,
   needed: number,
   inventoryItems: InventoryItem[],
   masterItems: Record<number, MasterItem>,
   masterRecipes: Record<number, MasterRecipe>,
-  stockRemaining: Map<string, number>
+  stockRemaining: Map<string, number>,
+  visited: Set<number> = new Set(),
+  depth: number = 0
 ): CraftNode {
   const masterItem = masterItems[itemId]
   const invItem = inventoryItems.find(it => it.recipeIngredientId === itemId)
@@ -50,17 +54,19 @@ function buildNode(
     fromSub = needed - fromStock
   }
 
-  // For the deficit, expand sub-recipe if available
+  // For the deficit, expand sub-recipe if available (guard against cycles and excessive depth)
   const children: CraftNode[] = []
   let sufficient = fromSub === 0
 
-  if (fromSub > 0) {
+  if (fromSub > 0 && depth < MAX_CRAFT_DEPTH && !visited.has(itemId)) {
     const subRecipe = masterRecipes[itemId]
     if (subRecipe) {
+      const nextVisited = new Set(visited)
+      nextVisited.add(itemId)
       let allOk = true
       for (const ing of subRecipe.ings) {
         if (isCrystal(ing.i)) continue
-        const child = buildNode(ing.i, ing.a * fromSub, inventoryItems, masterItems, masterRecipes, stockRemaining)
+        const child = buildNode(ing.i, ing.a * fromSub, inventoryItems, masterItems, masterRecipes, stockRemaining, nextVisited, depth + 1)
         children.push(child)
         if (!child.sufficient) allOk = false
       }
