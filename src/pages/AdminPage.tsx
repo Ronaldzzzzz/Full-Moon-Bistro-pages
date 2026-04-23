@@ -38,7 +38,7 @@ export default function AdminPage() {
     { key: 'inventory', label: '食材庫存' },
     { key: 'orders', label: '點餐管理' },
     { key: 'messages', label: '留言管理', ownerOnly: true },
-    { key: 'notice', label: '注意事項', ownerOnly: true },
+    { key: 'notice', label: '文字設定', ownerOnly: true },
     { key: 'settings', label: '系統設定', ownerOnly: true },
     { key: 'admins', label: '帳號管理', ownerOnly: true },
   ]
