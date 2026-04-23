@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { onAuthChange, getAdminSession, signOutAdmin } from '../lib/auth'
+import { getGlobalSettings } from '../lib/firestore'
 import type { AdminSession } from '../types'
 import PasswordGate from '../components/admin/PasswordGate'
 import MenuManager from '../components/admin/MenuManager'
@@ -15,6 +16,11 @@ type AdminTab = 'menu' | 'inventory' | 'messages' | 'admins' | 'notice' | 'order
 export default function AdminPage() {
   const [session, setSession] = useState<AdminSession | null>(getAdminSession)
   const [tab, setTab] = useState<AdminTab>('menu')
+  const [realModeEnabled, setRealModeEnabled] = useState(false)
+
+  useEffect(() => {
+    getGlobalSettings().then(s => setRealModeEnabled(s.realModeEnabled ?? false)).catch(() => {})
+  }, [])
 
   useEffect(() => {
     const unsub = onAuthChange((user) => {
@@ -74,7 +80,7 @@ export default function AdminPage() {
 
       {tab === 'menu' && <MenuManager />}
       {tab === 'inventory' && <InventoryManager />}
-      {tab === 'orders' && <OrderManager />}
+      {tab === 'orders' && session && <OrderManager session={session} realModeEnabled={realModeEnabled} />}
       {tab === 'messages' && session.role === 'owner' && <MessageManager />}
       {tab === 'notice' && session.role === 'owner' && <NoticeManager />}
       {tab === 'settings' && session.role === 'owner' && <GlobalSettingsManager />}
