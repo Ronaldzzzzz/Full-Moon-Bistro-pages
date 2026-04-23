@@ -354,7 +354,8 @@ export default function MenuManager() {
                       {(item.ingredients?.length ?? 0) > 0 && (
                         <button
                           onClick={() => setCraftTarget(item)}
-                          className="text-sm text-[#c9a55a] border border-[#6a5030] hover:bg-[#2a2015] px-3 py-1 rounded transition-colors"
+                          disabled={!masterData}
+                          className="text-sm text-[#c9a55a] border border-[#6a5030] hover:bg-[#2a2015] px-3 py-1 rounded transition-colors disabled:opacity-40"
                         >
                           製作
                         </button>
@@ -376,10 +377,12 @@ export default function MenuManager() {
         )
       )}
 
-      {craftTarget && (
+      {craftTarget && masterData && (
         <CraftModal
           menuItem={craftTarget}
           inventoryItems={inventoryItems}
+          masterItems={masterData.items}
+          masterRecipes={masterData.recipes}
           onClose={() => setCraftTarget(null)}
           onCrafted={load}
         />
