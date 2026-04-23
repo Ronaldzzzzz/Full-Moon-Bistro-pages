@@ -1,60 +1,55 @@
-# Progress Log - FF14 RP 咖啡廳菜單系統 v3.0
+# Progress Log - FF14 RP 咖啡廳菜單系統
 
-## 當前進度 (2026-04-22)
+## 當前進度 (2026-04-23)
 
-**已完成**: Task 1 ~ Task 4 (點餐系統、拍立得視覺、全局設定)  
-**待執行**: Task 5 (整合驗證與部署)  
-**分支狀態**: main 分支，領先 origin/main 12 commits (HEAD: 6dd9e28)
+**版本**: v3.2 庫存連動 + 帳號權限  
+**狀態**: 所有功能實作完成，build 通過，待部署  
+**分支**: main (HEAD: 92e81fa)
 
-## 最近完成的功能 (Task 3-4 code review 後合併)
+---
 
-### Task 3: 拍立得視覺與圖片管理
-- ✅ `PhotoCard.tsx` - 拍立得風格相框顯示
-- ✅ `PhotoManager.tsx` - 後台圖片上傳與管理
-- ✅ Firebase Storage 整合
+## v3.2 已完成功能
 
-### Task 4: Header 優化與全局設定  
-- ✅ `GlobalSettingsManager.tsx` - 後台設定分頁
-- ✅ Navbar 條件式訂購按鈕整合
-- ✅ 支援地址、運費、冷卻時間、最小訂購金額管理
+### 帳號權限（staff/owner 分離）
+- ✅ `src/pages/AdminPage.tsx` — staff 只見菜單/食材/點餐三頁；owner 見全部
 
-## Commit 履歷 (最近 6 個)
+### 點餐系統真實模式
+- ✅ `src/types/index.ts` — 新增 `Order.status`, `GlobalSettings.realModeEnabled`, `MenuItem.stock`
+- ✅ `src/lib/firestore.ts` — 新增 `completeOrder`, `addOrderWithStockDeduction`, `deleteOrderAndRestoreStock`, `craftMenuItemBatch`
+- ✅ `src/components/GlobalSettingsManager.tsx` — 庫存模式開關 UI
+- ✅ `src/components/OrderForm.tsx` — 缺貨品項不可選、真實模式下單扣庫存
 
-| 順序 | Commit SHA | 訊息 |
-|-----|-----------|------|
-| 1 | 6dd9e28 | Merge branch 'feature/v3-ordering' |
-| 2 | a6486e9 | feat: add GlobalSettingsManager with Navbar integration |
-| 3 | d69e8b4 | fix: mount PhotoManager in AdminPage and patch Storage filename & rotations |
-| 4 | 1f2ea45 | feat(v3): implement PhotoCard polaroid display and PhotoManager upload for Task 3 |
-| 5 | 47fb3a5 | fix: add error handling to OrderForm handleSubmit with user feedback |
-| 6 | a5873b4 | fix: resolve code review issues in ordering system |
+### 訂單管理重構
+- ✅ `src/components/admin/OrderManager.tsx` — 當前/歷史分頁、完成按鈕、批量刪除、分頁、股票回補
 
-## 新增檔案統計
+### 製作功能
+- ✅ `src/components/admin/CraftModal.tsx` — 新建，製作 N 份，扣食材庫存
+- ✅ `src/components/admin/MenuManager.tsx` — 庫存 badge、製作按鈕整合
 
-**新增**: 15 個檔案  
-**修改**: firestore.rules, src/components/Navbar.tsx, src/pages/AdminPage.tsx  
-**測試**: Navbar.test.tsx, AdminPage.test.tsx, GlobalSettingsManager.test.tsx, firestore.orders.test.ts
+---
 
-## worktree 狀態
+## v3.1 已完成功能（上一版）
 
-✅ 已清理完畢  
-✅ feature/v3-ordering 已成功合併回 main  
-✅ `.git/worktrees/` 已清空
+### 拍立得視覺增強
+- ✅ `PhotoCard.tsx` — 拍立得尺寸升級 (w200×h220)、拖動支援
+- ✅ `CropTool.tsx` + `PhotoManager.tsx` — 後台非破壞性裁剪工具
+- ✅ `src/types/index.ts` — `CropData`, `PhotoUrl` 型別
 
-## 下一步 (Task 5)
+---
 
-### 5.1 測試點餐流程
-- [ ] 本地測試訂購表單
-- [ ] 驗證 LocalStorage 冷卻邏輯
-- [ ] 驗證 Firestore orders 資料寫入
+## 最近 Commit 履歷
 
-### 5.2 驗證圖片上傳
-- [ ] 測試 PhotoManager 上傳流程
-- [ ] 驗證 PhotoCard 實時更新
-- [ ] 檢查 Storage 文件結構
+| SHA | 訊息 |
+|-----|------|
+| 92e81fa | feat: add CraftModal and integrate into MenuManager |
+| ea8e355 | feat(AdminPage): pass session and realModeEnabled to OrderManager |
+| 76f4bc8 | feat(OrderManager): rewrite with permissions/history/batch-delete |
+| f79601b | feat(AdminPage): restrict staff to menu/inventory/orders tabs only |
 
-### 5.3 Build & Deploy
-- [ ] 執行 `npm run build`
-- [ ] 執行 `npm run lint`
-- [ ] 執行 `npx vitest run`
-- [ ] 推送至 origin/main，觸發 GitHub Actions 自動部署
+---
+
+## 下一步
+
+- [ ] 推送至 origin/main，觸發 GitHub Pages 部署
+- [ ] 實機驗證：真實模式點餐 → 訂單管理完成/刪除流程
+- [ ] 實機驗證：CraftModal 製作 → 食材庫存扣減 → 菜品庫存增加
