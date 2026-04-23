@@ -393,13 +393,17 @@ export async function deleteOrder(id: string): Promise<void> {
 
 // ─── Global Settings ────────────────────────────────────────────
 
+let _settingsCache: GlobalSettings | null = null
+
 export async function getGlobalSettings(): Promise<GlobalSettings> {
+  if (_settingsCache) return _settingsCache
   const docSnap = await getDoc(doc(db, 'settings', 'global'))
   if (!docSnap.exists()) {
-    return { address: '', introText: '', orderCooldownMinutes: 30, photoUrls: [], realModeEnabled: false }
+    _settingsCache = { address: '', introText: '', orderCooldownMinutes: 30, photoUrls: [], realModeEnabled: false }
+    return _settingsCache
   }
   const data = docSnap.data()
-  return {
+  _settingsCache = {
     address: data?.address ?? '',
     introText: data?.introText ?? '',
     orderCooldownMinutes: data?.orderCooldownMinutes ?? 30,
@@ -407,8 +411,10 @@ export async function getGlobalSettings(): Promise<GlobalSettings> {
       .map(entry => typeof entry === 'string' ? { url: entry } : entry),
     realModeEnabled: data?.realModeEnabled ?? false,
   }
+  return _settingsCache
 }
 
 export async function updateGlobalSettings(data: Partial<GlobalSettings>): Promise<void> {
   await setDoc(doc(db, 'settings', 'global'), data, { merge: true })
+  _settingsCache = null
 }
