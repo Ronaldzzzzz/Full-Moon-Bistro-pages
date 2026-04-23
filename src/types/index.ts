@@ -22,6 +22,7 @@ export interface MenuItem {
   imageUrl: string
   available: boolean
   order: number
+  stock?: number
   recipeId?: number
   ingredients?: RecipeIngredient[]
 }
@@ -94,6 +95,7 @@ export interface Order {
   items: { menuItemId: string; menuItemName: string; quantity: number }[]
   timestamp: Timestamp
   note?: string
+  status?: 'pending' | 'completed'
 }
 
 /**
@@ -118,4 +120,5 @@ export interface GlobalSettings {
   address: string             // 餐廳地址（顯示於 Navbar）
   orderCooldownMinutes: number // 點餐冷卻分鐘數（預設 30）
   photoUrls: PhotoUrl[]       // 宣傳全身照（含可選裁切資料）
+  realModeEnabled?: boolean   // true = 真實庫存連動模式
 }

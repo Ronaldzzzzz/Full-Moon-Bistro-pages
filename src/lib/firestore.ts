@@ -12,6 +12,7 @@ import {
   orderBy,
   increment,
   writeBatch,
+  runTransaction,
 } from 'firebase/firestore'
 import { db } from './firebase'
 import type { MenuItem, InventoryItem, Message, Reply, LiveMusicConfig, NoticeConfig, Order, GlobalSettings, PhotoUrl } from '../types'
@@ -311,9 +312,66 @@ export async function getOrders(): Promise<Order[]> {
 export async function addOrder(data: Omit<Order, 'id' | 'timestamp'>): Promise<string> {
   const ref = await addDoc(collection(db, 'orders'), {
     ...data,
+    status: 'pending',
     timestamp: serverTimestamp(),
   })
   return ref.id
+}
+
+export async function completeOrder(id: string): Promise<void> {
+  await updateDoc(doc(db, 'orders', id), { status: 'completed' })
+}
+
+export async function addOrderWithStockDeduction(
+  data: Omit<Order, 'id' | 'timestamp'>
+): Promise<string> {
+  const orderRef = doc(collection(db, 'orders'))
+  await runTransaction(db, async (tx) => {
+    for (const item of data.items) {
+      const snap = await tx.get(doc(db, 'menuItems', item.menuItemId))
+      const currentStock = (snap.data()?.stock ?? 0) as number
+      if (currentStock < item.quantity) {
+        throw new Error(`${item.menuItemName} 庫存不足`)
+      }
+    }
+    for (const item of data.items) {
+      tx.update(doc(db, 'menuItems', item.menuItemId), {
+        stock: increment(-item.quantity),
+      })
+    }
+    tx.set(orderRef, {
+      ...data,
+      status: 'pending',
+      timestamp: serverTimestamp(),
+    })
+  })
+  return orderRef.id
+}
+
+export async function deleteOrderAndRestoreStock(order: Order): Promise<void> {
+  const batch = writeBatch(db)
+  batch.delete(doc(db, 'orders', order.id))
+  for (const item of order.items) {
+    batch.update(doc(db, 'menuItems', item.menuItemId), {
+      stock: increment(item.quantity),
+    })
+  }
+  await batch.commit()
+}
+
+export async function craftMenuItemBatch(
+  menuItemId: string,
+  addQty: number,
+  deductions: { inventoryItemId: string; amount: number }[]
+): Promise<void> {
+  const batch = writeBatch(db)
+  batch.update(doc(db, 'menuItems', menuItemId), { stock: increment(addQty) })
+  for (const d of deductions) {
+    batch.update(doc(db, 'inventory', d.inventoryItemId), {
+      stock: increment(-d.amount),
+    })
+  }
+  await batch.commit()
 }
 
 export async function deleteOrder(id: string): Promise<void> {
@@ -325,7 +383,7 @@ export async function deleteOrder(id: string): Promise<void> {
 export async function getGlobalSettings(): Promise<GlobalSettings> {
   const docSnap = await getDoc(doc(db, 'settings', 'global'))
   if (!docSnap.exists()) {
-    return { address: '', orderCooldownMinutes: 30, photoUrls: [] }
+    return { address: '', orderCooldownMinutes: 30, photoUrls: [], realModeEnabled: false }
   }
   const data = docSnap.data()
   return {
@@ -333,6 +391,7 @@ export async function getGlobalSettings(): Promise<GlobalSettings> {
     orderCooldownMinutes: data?.orderCooldownMinutes ?? 30,
     photoUrls: ((data?.photoUrls ?? []) as (string | PhotoUrl)[])
       .map(entry => typeof entry === 'string' ? { url: entry } : entry),
+    realModeEnabled: data?.realModeEnabled ?? false,
   }
 }
 
