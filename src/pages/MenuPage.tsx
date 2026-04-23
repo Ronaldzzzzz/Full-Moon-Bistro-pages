@@ -11,14 +11,18 @@ export default function MenuPage() {
   const [items, setItems] = useState<MenuItem[]>([])
   const [loading, setLoading] = useState(true)
   const [photoUrls, setPhotoUrls] = useState<PhotoUrl[]>([])
+  const [realModeEnabled, setRealModeEnabled] = useState(false)
 
   useEffect(() => {
     getMenuItems()
       .then(setItems)
       .finally(() => setLoading(false))
     getGlobalSettings()
-      .then(settings => setPhotoUrls(settings.photoUrls ?? []))
-      .catch(() => {/* 靜默處理，不影響菜單顯示 */})
+      .then(settings => {
+        setPhotoUrls(settings.photoUrls ?? [])
+        setRealModeEnabled(settings.realModeEnabled ?? false)
+      })
+      .catch(() => {})
   }, [])
 
   const grouped = useMemo(() => CATEGORY_ORDER.reduce((acc, cat) => {
@@ -60,7 +64,7 @@ export default function MenuPage() {
                 </div>
                 <ul className="flex flex-col gap-2 sm:gap-3">
                   {grouped[cat].map((item) => (
-                    <MenuItemRow key={item.id} item={item} />
+                    <MenuItemRow key={item.id} item={item} realModeEnabled={realModeEnabled} />
                   ))}
                 </ul>
               </section>

@@ -2,14 +2,31 @@ import type { MenuItem } from '../../types'
 
 interface Props {
   item: MenuItem
+  realModeEnabled?: boolean
 }
 
-export default function MenuItemRow({ item }: Props) {
+export default function MenuItemRow({ item, realModeEnabled = false }: Props) {
+  const isOutOfStock = realModeEnabled && !item.unlimited && (item.stock ?? 0) <= 0
+  const dimmed = !item.available || isOutOfStock
+
+  let statusLabel: string
+  let statusClass: string
+  if (!item.available) {
+    statusLabel = '已售完'
+    statusClass = 'bg-[#3a1e1e] text-[#ef9a9a]'
+  } else if (isOutOfStock) {
+    statusLabel = '缺貨'
+    statusClass = 'bg-[#3a1e1e] text-[#ef9a9a]'
+  } else {
+    statusLabel = '供應中'
+    statusClass = 'bg-[#1e3a1e] text-[#81c784]'
+  }
+
   return (
     <li
       role="listitem"
       className={`flex items-center gap-2 sm:gap-4 bg-[var(--color-bg-card)] border border-[var(--color-border-primary)] rounded p-2 sm:p-3 transition-all hover:bg-[var(--color-bg-card-hover)] hover:shadow-[var(--shadow-glow-warm)] ${
-        !item.available ? 'opacity-50' : ''
+        dimmed ? 'opacity-50' : ''
       }`}
     >
       {/* 縮圖 */}
@@ -36,14 +53,8 @@ export default function MenuItemRow({ item }: Props) {
       {/* 價格 + 狀態 */}
       <div className="flex-shrink-0 text-right">
         <div className="text-[#c9a55a] text-sm sm:text-base font-semibold content-text">{item.price} gil</div>
-        <div
-          className={`inline-block mt-1 text-xs px-1.5 sm:px-2 py-0.5 rounded-full ${
-            item.available
-              ? 'bg-[#1e3a1e] text-[#81c784]'
-              : 'bg-[#3a1e1e] text-[#ef9a9a]'
-          }`}
-        >
-          {item.available ? '供應中' : '已售完'}
+        <div className={`inline-block mt-1 text-xs px-1.5 sm:px-2 py-0.5 rounded-full ${statusClass}`}>
+          {statusLabel}
         </div>
       </div>
     </li>
