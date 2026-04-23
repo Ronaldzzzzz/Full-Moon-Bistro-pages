@@ -27,17 +27,17 @@ export default function AdminPage() {
     return <PasswordGate onSuccess={setSession} />
   }
 
-  const tabs: { key: AdminTab; label: string; minRole?: string }[] = [
+  const tabs: { key: AdminTab; label: string; ownerOnly?: boolean }[] = [
     { key: 'menu', label: '菜單管理' },
     { key: 'inventory', label: '食材庫存' },
-    { key: 'messages', label: '留言管理' },
-    { key: 'notice', label: '注意事項' },
     { key: 'orders', label: '點餐管理' },
-    { key: 'settings', label: '系統設定' },
-    { key: 'admins', label: '帳號管理', minRole: 'owner' },
+    { key: 'messages', label: '留言管理', ownerOnly: true },
+    { key: 'notice', label: '注意事項', ownerOnly: true },
+    { key: 'settings', label: '系統設定', ownerOnly: true },
+    { key: 'admins', label: '帳號管理', ownerOnly: true },
   ]
 
-  const visibleTabs = tabs.filter(t => !t.minRole || t.minRole === session.role)
+  const visibleTabs = tabs.filter(t => !t.ownerOnly || session.role === 'owner')
 
   return (
     <div className="admin-content">
@@ -74,10 +74,10 @@ export default function AdminPage() {
 
       {tab === 'menu' && <MenuManager />}
       {tab === 'inventory' && <InventoryManager />}
-      {tab === 'messages' && <MessageManager />}
-      {tab === 'notice' && <NoticeManager />}
       {tab === 'orders' && <OrderManager />}
-      {tab === 'settings' && <GlobalSettingsManager />}
+      {tab === 'messages' && session.role === 'owner' && <MessageManager />}
+      {tab === 'notice' && session.role === 'owner' && <NoticeManager />}
+      {tab === 'settings' && session.role === 'owner' && <GlobalSettingsManager />}
       {tab === 'admins' && session.role === 'owner' && <AdminManager />}
     </div>
   )
