@@ -40,10 +40,9 @@ export function getBaseMaterials(
   const item = items[itemId];
   if (!item) return result;
 
-  const recipeKey = item.r;
-  if (recipeKey !== undefined && recipes[recipeKey]) {
+  if (recipes[itemId]) {
     visited.add(itemId);
-    const recipe = recipes[recipeKey];
+    const recipe = recipes[itemId];
     for (const ing of recipe.ings) {
       getBaseMaterials(ing.i, ing.a * amount, items, recipes, result, visited);
     }
@@ -76,10 +75,9 @@ export function getRecipeTree(
   // 防範循環依賴
   if (visited.has(itemId)) return node;
 
-  const recipeKey = item?.r;
-  if (recipeKey !== undefined && recipes[recipeKey]) {
+  if (recipes[itemId]) {
     visited.add(itemId);
-    node.ingredients = recipes[recipeKey].ings.map((ing) =>
+    node.ingredients = recipes[itemId].ings.map((ing) =>
       getRecipeTree(ing.i, ing.a * amount, items, recipes, new Set(visited))
     );
     visited.delete(itemId);
