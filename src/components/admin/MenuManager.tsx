@@ -22,6 +22,8 @@ const EMPTY_FORM = {
   category: 'drink' as MenuCategory,
   imageUrl: '',
   available: true,
+  unlimited: false,
+  stock: 0,
   order: 0,
   recipeId: undefined as number | undefined,
   ingredients: [] as MenuItem['ingredients'],
@@ -84,8 +86,10 @@ export default function MenuManager() {
       category: item.category,
       imageUrl: item.imageUrl,
       available: item.available,
+      unlimited: item.unlimited ?? false,
+      stock: item.stock ?? 0,
       order: item.order,
-      recipeId: item.recipeId || undefined, // 確保為 undefined 或有效 ID
+      recipeId: item.recipeId || undefined,
       ingredients: item.ingredients || []
     })
 
@@ -232,10 +236,14 @@ export default function MenuManager() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-3">
             <div className="flex flex-col gap-1">
               <label className="text-xs text-[#9a8a70]">價格 (gil)</label>
               <input type="number" value={form.price} onChange={(e) => setForm({ ...form, price: Number(e.target.value) })} required min={0} className="bg-[#1a1510] border border-[#4a3820] rounded px-3 py-1.5 text-sm text-[#d4c090] focus:outline-none focus:border-[#c9a55a]" />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-xs text-[#9a8a70]">庫存數量</label>
+              <input type="number" value={form.stock} onChange={(e) => setForm({ ...form, stock: Math.max(0, parseInt(e.target.value) || 0) })} min={0} disabled={form.unlimited} className="bg-[#1a1510] border border-[#4a3820] rounded px-3 py-1.5 text-sm text-[#d4c090] focus:outline-none focus:border-[#c9a55a] disabled:opacity-40" />
             </div>
             <div className="flex flex-col gap-1">
               <label className="text-xs text-[#9a8a70]">排序</label>
@@ -275,10 +283,16 @@ export default function MenuManager() {
           )}
 
           <div className="flex items-center justify-between mt-2">
-            <label className="flex items-center gap-2 text-xs text-[#9a8a70] cursor-pointer">
-              <input type="checkbox" checked={form.available} onChange={(e) => setForm({ ...form, available: e.target.checked })} className="accent-[#c9a55a]" />
-              供應中
-            </label>
+            <div className="flex items-center gap-4">
+              <label className="flex items-center gap-2 text-xs text-[#9a8a70] cursor-pointer">
+                <input type="checkbox" checked={form.available} onChange={(e) => setForm({ ...form, available: e.target.checked })} className="accent-[#c9a55a]" />
+                供應中
+              </label>
+              <label className="flex items-center gap-2 text-xs text-[#c9a55a] cursor-pointer">
+                <input type="checkbox" checked={form.unlimited} onChange={(e) => setForm({ ...form, unlimited: e.target.checked })} className="accent-[#c9a55a]" />
+                無限量
+              </label>
+            </div>
             <div className="flex gap-2">
               <button type="button" onClick={() => setShowForm(false)} className="text-sm text-[#9a8a70] hover:text-[#d4c090] px-3 py-1.5">取消</button>
               <button type="submit" disabled={saving} className="bg-[#c9a55a] text-[#1a1510] text-sm font-semibold px-5 py-1.5 rounded hover:bg-[#d4af7a] disabled:opacity-50 transition-colors">
@@ -323,13 +337,17 @@ export default function MenuManager() {
                       </div>
                       <div className="flex items-center gap-2 mt-0.5">
                         <span className="text-[#c9a55a] text-sm font-medium">{item.price} gil</span>
-                        <span className={`text-xs px-1.5 py-0.5 rounded border ${
-                          (item.stock ?? 0) > 0
-                            ? 'text-[#81c784] border-[#3a5a3a]'
-                            : 'text-[#ef9a9a] border-[#6a3030]'
-                        }`}>
-                          庫存 {item.stock ?? 0}
-                        </span>
+                        {item.unlimited ? (
+                          <span className="text-xs px-1.5 py-0.5 rounded border text-[#c9a55a] border-[#6a5030]">∞ 無限量</span>
+                        ) : (
+                          <span className={`text-xs px-1.5 py-0.5 rounded border ${
+                            (item.stock ?? 0) > 0
+                              ? 'text-[#81c784] border-[#3a5a3a]'
+                              : 'text-[#ef9a9a] border-[#6a3030]'
+                          }`}>
+                            庫存 {item.stock ?? 0}
+                          </span>
+                        )}
                       </div>
                     </div>
                     <div className="flex items-center gap-2 flex-wrap justify-end">

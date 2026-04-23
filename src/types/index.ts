@@ -21,6 +21,7 @@ export interface MenuItem {
   price: number
   imageUrl: string
   available: boolean
+  unlimited?: boolean
   order: number
   stock?: number
   recipeId?: number

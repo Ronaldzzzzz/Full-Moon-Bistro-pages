@@ -130,7 +130,7 @@ export default function OrderForm({ menuItems }: OrderFormProps) {
           ) : (
             <div className="flex flex-col gap-1.5 max-h-64 overflow-y-auto pr-1">
               {menuItems.map(item => {
-                const isOutOfStock = realModeEnabled && (item.stock ?? 0) <= 0
+                const isOutOfStock = realModeEnabled && !item.unlimited && (item.stock ?? 0) <= 0
                 return (
                   <label
                     key={item.id}

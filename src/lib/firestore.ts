@@ -327,14 +327,22 @@ export async function addOrderWithStockDeduction(
 ): Promise<string> {
   const orderRef = doc(collection(db, 'orders'))
   await runTransaction(db, async (tx) => {
-    for (const item of data.items) {
-      const snap = await tx.get(doc(db, 'menuItems', item.menuItemId))
-      const currentStock = (snap.data()?.stock ?? 0) as number
+    const snaps = await Promise.all(
+      data.items.map(item => tx.get(doc(db, 'menuItems', item.menuItemId)))
+    )
+    for (let i = 0; i < data.items.length; i++) {
+      const item = data.items[i]
+      const snapData = snaps[i].data()
+      if (snapData?.unlimited) continue
+      const currentStock = (snapData?.stock ?? 0) as number
       if (currentStock < item.quantity) {
         throw new Error(`${item.menuItemName} 庫存不足`)
       }
     }
-    for (const item of data.items) {
+    for (let i = 0; i < data.items.length; i++) {
+      const item = data.items[i]
+      const snapData = snaps[i].data()
+      if (snapData?.unlimited) continue
       tx.update(doc(db, 'menuItems', item.menuItemId), {
         stock: increment(-item.quantity),
       })
@@ -349,9 +357,14 @@ export async function addOrderWithStockDeduction(
 }
 
 export async function deleteOrderAndRestoreStock(order: Order): Promise<void> {
+  const menuSnaps = await Promise.all(
+    order.items.map(item => getDoc(doc(db, 'menuItems', item.menuItemId)))
+  )
   const batch = writeBatch(db)
   batch.delete(doc(db, 'orders', order.id))
-  for (const item of order.items) {
+  for (let i = 0; i < order.items.length; i++) {
+    const item = order.items[i]
+    if (menuSnaps[i].data()?.unlimited) continue
     batch.update(doc(db, 'menuItems', item.menuItemId), {
       stock: increment(item.quantity),
     })
