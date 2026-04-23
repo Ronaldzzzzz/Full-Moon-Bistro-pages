@@ -123,7 +123,7 @@ export default function InventoryManager() {
         if (item.note && !groups[key].rawNotes.includes(item.note)) {
           groups[key].rawNotes.push(item.note);
         }
-        groups[key].docIds.push(item.id);
+        groups[key]!.docIds!.push(item.id);
       }
     });
 
@@ -181,7 +181,8 @@ export default function InventoryManager() {
 
   const renderNode = (node: DisplayNode, level: number = 0) => {
     const isSelected = selectedIds.has(node.id);
-    const isUnderstocked = node.totalDemand > 0 && node.stock < node.totalDemand;
+    const demand = node.totalDemand ?? 0
+    const isUnderstocked = demand > 0 && node.stock < demand;
 
     return (
       <div key={node.id} className="flex flex-col">
@@ -202,9 +203,9 @@ export default function InventoryManager() {
           <div className="flex-1 min-w-0">
             <div className="flex items-baseline gap-2">
               <span className="text-[#d4c090] text-base font-bold truncate">{node.name}</span>
-              {node.totalDemand > 0 && (
+              {demand > 0 && (
                 <span className={`text-[10px] px-1.5 rounded-full border ${isUnderstocked ? 'text-[#ef9a9a] border-[#ef9a9a]/30 bg-[#ef9a9a]/10' : 'text-[#81c784] border-[#81c784]/30 bg-[#81c784]/10'}`}>
-                  需求: {node.totalDemand}
+                  需求: {demand}
                 </span>
               )}
             </div>
