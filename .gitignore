@@ -27,13 +27,14 @@ dist-ssr
 # AI & Vibing Coding
 .claude
 .superpowers
+PLAN.md
+PROGRESS.md
 
 # Git worktrees
 .worktrees
 
 # Ignore all markdown files
 *.md
-# But keep README.md, PLAN.md, PROGRESS.md (for project tracking)
+# But keep README.md
 !README.md
-!PLAN.md
-!PROGRESS.md
+
