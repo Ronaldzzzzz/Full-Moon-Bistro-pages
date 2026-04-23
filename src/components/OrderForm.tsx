@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import type { MenuItem } from '../types'
-import { addOrder, getGlobalSettings } from '../lib/firestore'
+import { addOrder, addOrderWithStockDeduction, getGlobalSettings } from '../lib/firestore'
 
 const LS_KEY = 'lastOrderTime'
 
@@ -17,6 +17,7 @@ export default function OrderForm({ menuItems }: OrderFormProps) {
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [remainingMs, setRemainingMs] = useState(0)
   const [loadingSettings, setLoadingSettings] = useState(true)
+  const [realModeEnabled, setRealModeEnabled] = useState(false)
 
   // 計算剩餘冷卻時間（毫秒）
   const calcRemaining = useCallback((cooldownMs: number): number => {
@@ -32,6 +33,7 @@ export default function OrderForm({ menuItems }: OrderFormProps) {
       .then(settings => {
         setCooldownMinutes(settings.orderCooldownMinutes)
         setRemainingMs(calcRemaining(settings.orderCooldownMinutes * 60 * 1000))
+        setRealModeEnabled(settings.realModeEnabled ?? false)
       })
       .catch(err => {
         console.error('無法載入點餐設定:', err)
@@ -73,7 +75,12 @@ export default function OrderForm({ menuItems }: OrderFormProps) {
         const item = menuItems.find(m => m.id === id)!
         return { menuItemId: id, menuItemName: item.name, quantity: 1 }
       })
-      await addOrder({ customerName: customerName.trim(), items })
+      const orderData = { customerName: customerName.trim(), items }
+      if (realModeEnabled) {
+        await addOrderWithStockDeduction(orderData)
+      } else {
+        await addOrder(orderData)
+      }
       localStorage.setItem(LS_KEY, Date.now().toString())
       setCustomerName('')
       setSelected(new Set())
@@ -122,25 +129,39 @@ export default function OrderForm({ menuItems }: OrderFormProps) {
             <p className="text-[#9a8a70] text-sm py-2">目前無可點餐品項</p>
           ) : (
             <div className="flex flex-col gap-1.5 max-h-64 overflow-y-auto pr-1">
-              {menuItems.map(item => (
-                <label
-                  key={item.id}
-                  className={`flex items-center gap-3 px-3 py-2 rounded cursor-pointer transition-colors ${
-                    selected.has(item.id)
-                      ? 'bg-[#3a2c10] border border-[#c9a55a]'
-                      : 'bg-[#1e1810] border border-[#3a2c1a] hover:border-[#6a5030]'
-                  }`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={selected.has(item.id)}
-                    onChange={() => toggleItem(item.id)}
-                    className="accent-[#c9a55a]"
-                  />
-                  <span className="flex-1 text-sm text-[#d4c090]">{item.name}</span>
-                  <span className="text-xs text-[#9a8a70]">{item.price} gil</span>
-                </label>
-              ))}
+              {menuItems.map(item => {
+                const isOutOfStock = realModeEnabled && (item.stock ?? 0) <= 0
+                return (
+                  <label
+                    key={item.id}
+                    className={`flex items-center gap-3 px-3 py-2 rounded transition-colors ${
+                      isOutOfStock
+                        ? 'bg-[#1e1810] border border-[#3a2c1a] opacity-50 cursor-not-allowed'
+                        : selected.has(item.id)
+                          ? 'bg-[#3a2c10] border border-[#c9a55a] cursor-pointer'
+                          : 'bg-[#1e1810] border border-[#3a2c1a] hover:border-[#6a5030] cursor-pointer'
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selected.has(item.id)}
+                      onChange={() => !isOutOfStock && toggleItem(item.id)}
+                      disabled={isOutOfStock}
+                      className="accent-[#c9a55a]"
+                    />
+                    <span className={`flex-1 text-sm ${isOutOfStock ? 'text-[#6a5030]' : 'text-[#d4c090]'}`}>
+                      {item.alias || item.name}
+                    </span>
+                    {isOutOfStock ? (
+                      <span className="text-xs text-[#ef9a9a] border border-[#6a3030] rounded px-1.5 py-0.5">
+                        缺貨
+                      </span>
+                    ) : (
+                      <span className="text-xs text-[#9a8a70]">{item.price} gil</span>
+                    )}
+                  </label>
+                )
+              })}
             </div>
           )}
         </div>
