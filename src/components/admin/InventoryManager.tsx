@@ -216,7 +216,7 @@ export default function InventoryManager() {
           </div>
           <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
             <button onClick={() => handleQuickStockUpdate(node, node.stock - 1)} className="w-6 h-6 flex items-center justify-center bg-[#3a2e18] text-[#c9a55a] rounded hover:bg-[#4a3820] transition-colors text-lg font-bold">-</button>
-            <input type="number" value={node.stock} onChange={(e) => handleQuickStockUpdate(node, parseInt(e.target.value) || 0)} className="w-12 bg-[#1a1510] border border-[#4a3820] rounded px-1 py-0.5 text-center text-sm text-[#f4e38e] focus:outline-none focus:border-[#c9a55a]" />
+            <input type="number" value={node.stock} onChange={(e) => handleQuickStockUpdate(node, parseInt(e.target.value) || 0)} className="w-20 bg-[#1a1510] border border-[#4a3820] rounded px-2 py-0.5 text-center text-sm text-[#f4e38e] focus:outline-none focus:border-[#c9a55a]" />
             <button onClick={() => handleQuickStockUpdate(node, node.stock + 1)} className="w-6 h-6 flex items-center justify-center bg-[#3a2e18] text-[#c9a55a] rounded hover:bg-[#4a3820] transition-colors text-lg font-bold">+</button>
           </div>
           <div className="flex gap-1 ml-2" onClick={(e) => e.stopPropagation()}>

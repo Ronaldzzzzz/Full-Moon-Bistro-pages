@@ -323,15 +323,13 @@ export default function MenuManager() {
                       </div>
                       <div className="flex items-center gap-2 mt-0.5">
                         <span className="text-[#c9a55a] text-sm font-medium">{item.price} gil</span>
-                        {item.stock !== undefined && (
-                          <span className={`text-xs px-1.5 py-0.5 rounded border ${
-                            (item.stock ?? 0) > 0
-                              ? 'text-[#81c784] border-[#3a5a3a]'
-                              : 'text-[#ef9a9a] border-[#6a3030]'
-                          }`}>
-                            庫存 {item.stock ?? 0}
-                          </span>
-                        )}
+                        <span className={`text-xs px-1.5 py-0.5 rounded border ${
+                          (item.stock ?? 0) > 0
+                            ? 'text-[#81c784] border-[#3a5a3a]'
+                            : 'text-[#ef9a9a] border-[#6a3030]'
+                        }`}>
+                          庫存 {item.stock ?? 0}
+                        </span>
                       </div>
                     </div>
                     <div className="flex items-center gap-2 flex-wrap justify-end">
