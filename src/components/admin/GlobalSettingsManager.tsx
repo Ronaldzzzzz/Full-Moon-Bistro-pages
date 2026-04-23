@@ -5,6 +5,7 @@ import PhotoManager from './PhotoManager'
 
 export default function GlobalSettingsManager() {
   const [address, setAddress] = useState('')
+  const [introText, setIntroText] = useState('')
   const [cooldown, setCooldown] = useState(30)
   const [realModeEnabled, setRealModeEnabled] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -17,6 +18,7 @@ export default function GlobalSettingsManager() {
     getGlobalSettings()
       .then(s => {
         setAddress(s.address ?? '')
+        setIntroText(s.introText ?? '')
         setCooldown(s.orderCooldownMinutes ?? 30)
         setRealModeEnabled(s.realModeEnabled ?? false)
         setHasLoadedSettings(true)
@@ -31,7 +33,7 @@ export default function GlobalSettingsManager() {
     setError(null)
     setSaved(false)
     try {
-      await updateGlobalSettings({ address, orderCooldownMinutes: cooldown, realModeEnabled })
+      await updateGlobalSettings({ address, introText, orderCooldownMinutes: cooldown, realModeEnabled })
       setSaved(true)
       setTimeout(() => setSaved(false), 2000)
     } catch {
@@ -47,6 +49,42 @@ export default function GlobalSettingsManager() {
 
   return (
     <div className="flex flex-col gap-8">
+      {/* 介紹文字區塊 */}
+      <div className="bg-[var(--color-bg-card)] border border-[var(--color-border-gold)] rounded p-5 flex flex-col gap-4">
+        <h3 className="text-[var(--color-gold-primary)] text-sm font-semibold tracking-wide">
+          介紹文字
+        </h3>
+        <div className="flex flex-col gap-1.5">
+          <label className="text-[var(--color-text-muted)] text-xs tracking-wide">
+            顯示於菜單頁注意事項上方
+          </label>
+          <textarea
+            value={introText}
+            onChange={e => setIntroText(e.target.value)}
+            rows={6}
+            placeholder={"歡迎光臨月圓餐館！\n今日特餐：…"}
+            className="bg-[#2d1e12] border border-[#8b6b4a] text-[#e8d5b5] rounded px-3 py-2 text-sm
+                       placeholder:text-[#6a5030] focus:outline-none focus:border-[var(--color-gold-primary)]
+                       transition-colors resize-y leading-relaxed"
+          />
+          <p className="text-[#6a5030] text-[11px]">支援換行。留空則不顯示此區塊。</p>
+        </div>
+        <div className="flex items-center gap-3 pt-1">
+          <button
+            onClick={handleSave}
+            disabled={saving || !hasLoadedSettings}
+            className="px-5 py-1.5 text-sm rounded border transition-colors
+                       border-[var(--color-gold-primary)] text-[var(--color-gold-primary)]
+                       hover:bg-[var(--color-gold-primary)] hover:text-[var(--color-bg-primary)]
+                       disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
+          >
+            {saving ? '儲存中…' : '儲存設定'}
+          </button>
+          {saved && <span className="text-green-400 text-xs">✓ 已儲存</span>}
+          {error && <span className="text-red-400 text-xs">{error}</span>}
+        </div>
+      </div>
+
       {/* 基本設定區塊 */}
       <div className="bg-[var(--color-bg-card)] border border-[var(--color-border-gold)] rounded p-5 flex flex-col gap-5">
         <h3 className="text-[var(--color-gold-primary)] text-sm font-semibold tracking-wide">

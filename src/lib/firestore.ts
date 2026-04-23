@@ -396,11 +396,12 @@ export async function deleteOrder(id: string): Promise<void> {
 export async function getGlobalSettings(): Promise<GlobalSettings> {
   const docSnap = await getDoc(doc(db, 'settings', 'global'))
   if (!docSnap.exists()) {
-    return { address: '', orderCooldownMinutes: 30, photoUrls: [], realModeEnabled: false }
+    return { address: '', introText: '', orderCooldownMinutes: 30, photoUrls: [], realModeEnabled: false }
   }
   const data = docSnap.data()
   return {
     address: data?.address ?? '',
+    introText: data?.introText ?? '',
     orderCooldownMinutes: data?.orderCooldownMinutes ?? 30,
     photoUrls: ((data?.photoUrls ?? []) as (string | PhotoUrl)[])
       .map(entry => typeof entry === 'string' ? { url: entry } : entry),

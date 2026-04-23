@@ -12,6 +12,7 @@ export default function MenuPage() {
   const [loading, setLoading] = useState(true)
   const [photoUrls, setPhotoUrls] = useState<PhotoUrl[]>([])
   const [realModeEnabled, setRealModeEnabled] = useState(false)
+  const [introText, setIntroText] = useState('')
 
   useEffect(() => {
     getMenuItems()
@@ -21,6 +22,7 @@ export default function MenuPage() {
       .then(settings => {
         setPhotoUrls(settings.photoUrls ?? [])
         setRealModeEnabled(settings.realModeEnabled ?? false)
+        setIntroText(settings.introText ?? '')
       })
       .catch(() => {})
   }, [])
@@ -38,6 +40,14 @@ export default function MenuPage() {
         <p className="text-[var(--color-text-muted)] text-xs md:text-sm mt-1 tracking-[0.3em] font-medium">MOONLIGHT & MELODY</p>
         <div className="mt-2 wave-divider" />
       </div>
+
+      {introText.trim() && (
+        <div className="border border-[var(--color-border-gold)] rounded p-4 sm:p-6 bg-[var(--color-bg-card)]">
+          <p className="text-[#d4c090] text-sm sm:text-base leading-relaxed whitespace-pre-wrap">
+            {introText}
+          </p>
+        </div>
+      )}
 
       <NoticeBanner />
 

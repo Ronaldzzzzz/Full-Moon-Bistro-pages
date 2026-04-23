@@ -119,6 +119,7 @@ export interface PhotoUrl {
 // 全局設定
 export interface GlobalSettings {
   address: string             // 餐廳地址（顯示於 Navbar）
+  introText?: string          // 菜單頁介紹文字（顯示於注意事項上方）
   orderCooldownMinutes: number // 點餐冷卻分鐘數（預設 30）
   photoUrls: PhotoUrl[]       // 宣傳全身照（含可選裁切資料）
   realModeEnabled?: boolean   // true = 真實庫存連動模式
