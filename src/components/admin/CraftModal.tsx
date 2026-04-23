@@ -58,6 +58,7 @@ function buildNode(
     if (subRecipe) {
       let allOk = true
       for (const ing of subRecipe.ings) {
+        if (ing.i >= 2 && ing.i <= 19) continue  // ignore crystals
         const child = buildNode(ing.i, ing.a * fromSub, inventoryItems, masterItems, masterRecipes, stockRemaining)
         children.push(child)
         if (!child.sufficient) allOk = false
@@ -92,9 +93,9 @@ function calcTopLevel(
 
   const stockRemaining = new Map<string, number>(inventoryItems.map(it => [it.id, it.stock]))
 
-  const nodes = recipe.ings.map(ing =>
-    buildNode(ing.i, ing.a * craftQty, inventoryItems, masterItems, masterRecipes, stockRemaining)
-  )
+  const nodes = recipe.ings
+    .filter(ing => !(ing.i >= 2 && ing.i <= 19))  // ignore crystals
+    .map(ing => buildNode(ing.i, ing.a * craftQty, inventoryItems, masterItems, masterRecipes, stockRemaining))
 
   const deductions: { inventoryItemId: string; amount: number }[] = []
   for (const inv of inventoryItems) {
