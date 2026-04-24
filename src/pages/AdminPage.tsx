@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { onAuthChange, getAdminSession, signOutAdmin } from '../lib/auth'
-import { getGlobalSettings } from '../lib/firestore'
+import { getGlobalSettings, subscribeAdminAccount } from '../lib/firestore'
 import type { AdminSession } from '../types'
 import PasswordGate from '../components/admin/PasswordGate'
 import MenuManager from '../components/admin/MenuManager'
@@ -17,6 +17,8 @@ export default function AdminPage() {
   const [session, setSession] = useState<AdminSession | null>(getAdminSession)
   const [tab, setTab] = useState<AdminTab>('menu')
   const [realModeEnabled, setRealModeEnabled] = useState(false)
+  const [logoutReason, setLogoutReason] = useState<string | null>(null)
+  const hasLoaded = useRef(false)
 
   useEffect(() => {
     getGlobalSettings().then(s => setRealModeEnabled(s.realModeEnabled ?? false)).catch(() => {})
@@ -29,8 +31,33 @@ export default function AdminPage() {
     return unsub
   }, [])
 
+  useEffect(() => {
+    if (!session) return
+    hasLoaded.current = false
+    const unsub = subscribeAdminAccount(session.hash, () => {
+      if (!hasLoaded.current) {
+        hasLoaded.current = true
+        return
+      }
+      signOutAdmin().then(() => {
+        setLogoutReason('帳號權限已變更，請重新登入')
+        setSession(null)
+      })
+    })
+    return unsub
+  }, [session?.hash])
+
   if (!session) {
-    return <PasswordGate onSuccess={setSession} />
+    return (
+      <div>
+        {logoutReason && (
+          <div className="mb-4 px-4 py-2 rounded bg-[#3a1e1e] border border-[#6a3030] text-[#ef9a9a] text-sm text-center">
+            {logoutReason}
+          </div>
+        )}
+        <PasswordGate onSuccess={(s) => { setLogoutReason(null); setSession(s) }} />
+      </div>
+    )
   }
 
   const tabs: { key: AdminTab; label: string; ownerOnly?: boolean }[] = [
