@@ -143,7 +143,7 @@ export default function AdminManager() {
                   </td>
                   <td className="px-4 py-3 text-right">
                     <button
-                      onClick={() => handleDeleteAdmin(admin.id)}
+                      onClick={(e) => { e.stopPropagation(); handleDeleteAdmin(admin.id) }}
                       className="text-xs text-[#6a3030] hover:text-[#ef9a9a] transition-colors"
                     >
                       刪除
