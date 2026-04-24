@@ -28,7 +28,12 @@ interface DisplayNode extends InventoryNode {
   docIds?: string[]
 }
 
-export default function InventoryManager() {
+interface Props {
+  canWrite: boolean
+  canDelete: boolean
+}
+
+export default function InventoryManager({ canWrite, canDelete }: Props) {
   const [items, setItems] = useState<InventoryItem[]>([])
   const [menuItems, setMenuItems] = useState<MenuItem[]>([])
   const [masterRecipes, setMasterRecipes] = useState<Record<number, MasterRecipe>>({})
@@ -194,9 +199,11 @@ export default function InventoryManager() {
           style={{ marginLeft: `${level * 1.5}rem` }}
         >
           {level > 0 && <span className="text-[#6a5030] opacity-50">└─</span>}
-          <div className="flex items-center justify-center w-5 h-5 flex-shrink-0">
-            <input type="checkbox" checked={isSelected} onChange={() => {}} className="accent-[#c9a55a] w-4 h-4" />
-          </div>
+          {canDelete && (
+            <div className="flex items-center justify-center w-5 h-5 flex-shrink-0">
+              <input type="checkbox" checked={isSelected} onChange={() => {}} className="accent-[#c9a55a] w-4 h-4" />
+            </div>
+          )}
           <div className="w-8 h-8 rounded bg-black/20 flex-shrink-0 flex items-center justify-center overflow-hidden border border-[#4a3820]">
             {node.icon ? <img src={`https://xivapi.com${node.icon}`} alt="" className="w-full h-full object-contain" /> : <span className="text-lg">📦</span>}
           </div>
@@ -216,10 +223,16 @@ export default function InventoryManager() {
             <input type="number" value={node.stock} onChange={(e) => handleQuickStockUpdate(node, parseInt(e.target.value) || 0)} className="w-20 bg-[#1a1510] border border-[#4a3820] rounded px-2 py-0.5 text-center text-sm text-[#f4e38e] focus:outline-none focus:border-[#c9a55a]" />
             <button onClick={() => handleQuickStockUpdate(node, node.stock + 1)} className="w-6 h-6 flex items-center justify-center bg-[#3a2e18] text-[#c9a55a] rounded hover:bg-[#4a3820] transition-colors text-lg font-bold">+</button>
           </div>
-          <div className="flex gap-1 ml-2" onClick={(e) => e.stopPropagation()}>
-            <button onClick={() => { setEditing(node); setForm({ name: node.name, stock: node.stock, note: node.note }); setShowForm(true); }} className="text-xs text-[#9a8a70] hover:text-[#d4c090] p-1">⚙</button>
-            <button onClick={() => handleDelete(node.id)} className="text-xs text-[#6a3030] hover:text-[#ef9a9a] p-1">✕</button>
-          </div>
+          {(canWrite || canDelete) && (
+            <div className="flex gap-1 ml-2" onClick={(e) => e.stopPropagation()}>
+              {canWrite && (
+                <button onClick={() => { setEditing(node); setForm({ name: node.name, stock: node.stock, note: node.note }); setShowForm(true); }} className="text-xs text-[#9a8a70] hover:text-[#d4c090] p-1">⚙</button>
+              )}
+              {canDelete && (
+                <button onClick={() => handleDelete(node.id)} className="text-xs text-[#6a3030] hover:text-[#ef9a9a] p-1">✕</button>
+              )}
+            </div>
+          )}
         </div>
         {node.children && node.children.length > 0 && (
           <div className="flex flex-col mt-1">
@@ -258,17 +271,19 @@ export default function InventoryManager() {
             <button onClick={() => setViewMode('tree')} className={`px-3 py-1 text-[10px] rounded transition-colors ${viewMode === 'tree' ? 'bg-[#c9a55a] text-[#1a1510] font-bold' : 'text-[#6a5030] hover:text-[#9a8a70]'}`}>樹狀</button>
             <button onClick={() => setViewMode('list')} className={`px-3 py-1 text-[10px] rounded transition-colors ${viewMode === 'list' ? 'bg-[#c9a55a] text-[#1a1510] font-bold' : 'text-[#6a5030] hover:text-[#9a8a70]'}`}>清單</button>
           </div>
-          {items.length > 0 && (
+          {canDelete && items.length > 0 && (
             <button onClick={handleSelectAll} className="text-[#c9a55a] text-xs hover:underline">{selectedIds.size === items.length ? '取消全選' : '全選'}</button>
           )}
-          {selectedIds.size > 0 && (
+          {canDelete && selectedIds.size > 0 && (
             <button onClick={handleBulkDelete} disabled={saving} className="bg-[#3a1e1e] text-[#ef9a9a] text-xs px-3 py-1 rounded hover:bg-[#4a2222] transition-colors disabled:opacity-50">刪除選中 ({selectedIds.size})</button>
           )}
         </div>
-        <button onClick={() => { setEditing(null); setForm(EMPTY_FORM); setShowForm(true); }} className="bg-[#c9a55a] text-[#1a1510] text-sm font-semibold px-4 py-1.5 rounded hover:bg-[#d4af7a] transition-colors">＋ 手動新增食材</button>
+        {canWrite && (
+          <button onClick={() => { setEditing(null); setForm(EMPTY_FORM); setShowForm(true); }} className="bg-[#c9a55a] text-[#1a1510] text-sm font-semibold px-4 py-1.5 rounded hover:bg-[#d4af7a] transition-colors">＋ 手動新增食材</button>
+        )}
       </div>
 
-      {showForm && (
+      {showForm && canWrite && (
         <form onSubmit={handleSave} className="bg-[#2a2015] border border-[#6a5030] rounded p-4 mb-6 flex flex-col gap-3">
           <h3 className="text-[#c9a55a] text-sm font-semibold">{editing ? '編輯食材' : '新增食材'}</h3>
           <div className="flex flex-col gap-3">
