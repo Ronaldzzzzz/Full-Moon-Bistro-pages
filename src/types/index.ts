@@ -70,9 +70,30 @@ export interface Message {
   replies?: Reply[]
 }
 
+// ─── Admin Permissions ─────────────────────────────────────────
+
+export type TabKey = 'menu' | 'inventory' | 'orders' | 'messages' | 'notice'
+
+export interface TabPermission {
+  write: boolean
+  delete: boolean
+}
+
+export type StaffPermissions = Record<TabKey, TabPermission>
+
+export const DEFAULT_STAFF_PERMISSIONS: StaffPermissions = {
+  menu:      { write: true,  delete: true  },
+  inventory: { write: true,  delete: true  },
+  orders:    { write: true,  delete: true  },
+  messages:  { write: true,  delete: true  },
+  notice:    { write: false, delete: false },
+}
+
 export interface AdminSession {
   role: 'owner' | 'staff'
   label: string
+  hash: string
+  permissions: StaffPermissions
 }
 
 export interface LiveMusicConfig {
