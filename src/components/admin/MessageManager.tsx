@@ -3,7 +3,11 @@ import { getMessages, deleteMessage } from '../../lib/firestore'
 import type { Message } from '../../types'
 import MessageCard from '../guestbook/MessageCard'
 
-export default function MessageManager() {
+interface Props {
+  canDelete: boolean
+}
+
+export default function MessageManager({ canDelete }: Props) {
   const [messages, setMessages] = useState<Message[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -36,7 +40,7 @@ export default function MessageManager() {
       ) : (
         <div className="flex flex-col gap-3">
           {messages.map((msg) => (
-            <MessageCard key={msg.id} message={msg} onDelete={handleDelete} />
+            <MessageCard key={msg.id} message={msg} onDelete={canDelete ? handleDelete : undefined} />
           ))}
         </div>
       )}
