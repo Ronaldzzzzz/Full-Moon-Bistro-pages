@@ -37,4 +37,6 @@ PROGRESS.md
 *.md
 # But keep README.md
 !README.md
+# Keep superpowers design docs
+!docs/superpowers/**/*.md
 
