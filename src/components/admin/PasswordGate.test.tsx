@@ -28,7 +28,7 @@ describe('PasswordGate', () => {
   })
 
   it('密碼正確時呼叫 onSuccess', async () => {
-    const session = { role: 'owner' as const, label: '主廚' }
+    const session = { role: 'owner' as const, label: '主廚', hash: 'abc123', permissions: { menu: { write: true, delete: true }, inventory: { write: true, delete: true }, orders: { write: true, delete: true }, messages: { write: true, delete: true }, notice: { write: true, delete: true } } }
     vi.mocked(signInWithPassword).mockResolvedValueOnce(session)
     const onSuccess = vi.fn()
     render(<PasswordGate onSuccess={onSuccess} />)

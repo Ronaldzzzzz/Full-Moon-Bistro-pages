@@ -11,7 +11,8 @@ import {
   getDoc,
 } from 'firebase/firestore'
 import { auth, db } from './firebase'
-import type { AdminSession } from '../types'
+import type { AdminSession, StaffPermissions, TabKey } from '../types'
+import { DEFAULT_STAFF_PERMISSIONS } from '../types'
 
 const SESSION_KEY = 'adminSession'
 
@@ -23,6 +24,11 @@ export async function hashPassword(password: string): Promise<string> {
   return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('')
 }
 
+const ALL_TAB_KEYS: TabKey[] = ['menu', 'inventory', 'orders', 'messages', 'notice']
+const OWNER_PERMISSIONS: StaffPermissions = Object.fromEntries(
+  ALL_TAB_KEYS.map(k => [k, { write: true, delete: true }])
+) as StaffPermissions
+
 export async function signInWithPassword(password: string): Promise<AdminSession> {
   const hash = await hashPassword(password)
   const docRef = doc(db, 'adminPasswords', hash)
@@ -32,12 +38,18 @@ export async function signInWithPassword(password: string): Promise<AdminSession
     throw new Error('密碼錯誤')
   }
 
-  const { role, label } = docSnap.data() as { role: 'owner' | 'staff'; label: string }
+  const data = docSnap.data() as { role: 'owner' | 'staff'; label: string; permissions?: StaffPermissions }
+  const { role, label } = data
+
+  const permissions: StaffPermissions =
+    role === 'owner'
+      ? OWNER_PERMISSIONS
+      : (data.permissions ?? DEFAULT_STAFF_PERMISSIONS)
 
   await setPersistence(auth, browserSessionPersistence)
   await signInAnonymously(auth)
 
-  const session: AdminSession = { role, label }
+  const session: AdminSession = { role, label, hash, permissions }
   sessionStorage.setItem(SESSION_KEY, JSON.stringify(session))
   return session
 }
@@ -51,7 +63,9 @@ export function getAdminSession(): AdminSession | null {
   const raw = sessionStorage.getItem(SESSION_KEY)
   if (!raw) return null
   try {
-    return JSON.parse(raw) as AdminSession
+    const parsed = JSON.parse(raw) as AdminSession
+    if (!parsed.hash || !parsed.permissions) return null
+    return parsed
   } catch {
     return null
   }
