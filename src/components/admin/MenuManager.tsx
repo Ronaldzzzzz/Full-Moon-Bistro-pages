@@ -29,7 +29,12 @@ const EMPTY_FORM = {
   ingredients: [] as MenuItem['ingredients'],
 }
 
-export default function MenuManager() {
+interface Props {
+  canWrite: boolean
+  canDelete: boolean
+}
+
+export default function MenuManager({ canWrite, canDelete }: Props) {
   const [items, setItems] = useState<MenuItem[]>([])
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState<MenuItem | null>(null)
@@ -204,15 +209,17 @@ export default function MenuManager() {
     <div>
       <div className="flex justify-between items-center mb-4">
         <span className="text-[#9a8a70] text-sm">{items.length} 個品項</span>
-        <button
-          onClick={startNew}
-          className="bg-[#c9a55a] text-[#1a1510] text-sm font-semibold px-4 py-1.5 rounded hover:bg-[#d4af7a] transition-colors"
-        >
-          ＋ 新增品項
-        </button>
+        {canWrite && (
+          <button
+            onClick={startNew}
+            className="bg-[#c9a55a] text-[#1a1510] text-sm font-semibold px-4 py-1.5 rounded hover:bg-[#d4af7a] transition-colors"
+          >
+            ＋ 新增品項
+          </button>
+        )}
       </div>
 
-      {showForm && (
+      {showForm && canWrite && (
         <form onSubmit={handleSave} className="bg-[#2a2015] border border-[#6a5030] rounded p-4 mb-6 flex flex-col gap-4">
           <h3 className="text-[#c9a55a] text-sm font-semibold border-b border-[#6a5030] pb-2">
             {editing ? '編輯品項' : '新增品項'}
@@ -366,8 +373,12 @@ export default function MenuManager() {
                       >
                         {item.available ? '供應中' : '已下架'}
                       </button>
-                      <button onClick={() => startEdit(item)} className="text-sm text-[#9a8a70] hover:text-[#d4c090] px-2 py-1 font-medium underline underline-offset-4">編輯</button>
-                      <button onClick={() => handleDelete(item.id)} className="text-sm text-[#6a3030] hover:text-[#ef9a9a] px-2 py-1 font-medium">刪除</button>
+                      {canWrite && (
+                        <button onClick={() => startEdit(item)} className="text-sm text-[#9a8a70] hover:text-[#d4c090] px-2 py-1 font-medium underline underline-offset-4">編輯</button>
+                      )}
+                      {canDelete && (
+                        <button onClick={() => handleDelete(item.id)} className="text-sm text-[#6a3030] hover:text-[#ef9a9a] px-2 py-1 font-medium">刪除</button>
+                      )}
                     </div>
                   </div>
                 ))}
