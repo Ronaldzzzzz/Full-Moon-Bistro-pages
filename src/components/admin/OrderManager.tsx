@@ -8,11 +8,13 @@ import Toast from '../Toast'
 interface Props {
   session: AdminSession
   realModeEnabled: boolean
+  canWrite: boolean
+  canDelete: boolean
 }
 
 const HISTORY_PAGE_SIZE = 10
 
-export default function OrderManager({ session: _session, realModeEnabled }: Props) {
+export default function OrderManager({ session: _session, realModeEnabled, canWrite, canDelete }: Props) {
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
   const [deleting, setDeleting] = useState<string | null>(null)
@@ -202,7 +204,7 @@ export default function OrderManager({ session: _session, realModeEnabled }: Pro
                       <span className="text-sm text-[#9a8a70]">{formatTime(order)}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      {!isCompleted && (
+                      {!isCompleted && canWrite && (
                         <button
                           onClick={() => handleComplete(order.id)}
                           disabled={completing === order.id}
@@ -211,7 +213,7 @@ export default function OrderManager({ session: _session, realModeEnabled }: Pro
                           {completing === order.id ? '處理中…' : '完成'}
                         </button>
                       )}
-                      {!isCompleted && (
+                      {!isCompleted && canDelete && (
                         <button
                           onClick={() => handleDelete(order)}
                           disabled={deleting === order.id}
@@ -247,16 +249,18 @@ export default function OrderManager({ session: _session, realModeEnabled }: Pro
             <>
               {/* 批量操作列 */}
               <div className="flex items-center gap-3">
-                <label className="flex items-center gap-2 text-sm text-[#9a8a70] cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={selectedHistoryIds.size === pagedHistory.length && pagedHistory.length > 0}
-                    onChange={toggleSelectAllHistory}
-                    className="accent-[#c9a55a]"
-                  />
-                  全選本頁
-                </label>
-                {selectedHistoryIds.size > 0 && (
+                {canDelete && (
+                  <label className="flex items-center gap-2 text-sm text-[#9a8a70] cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={selectedHistoryIds.size === pagedHistory.length && pagedHistory.length > 0}
+                      onChange={toggleSelectAllHistory}
+                      className="accent-[#c9a55a]"
+                    />
+                    全選本頁
+                  </label>
+                )}
+                {canDelete && selectedHistoryIds.size > 0 && (
                   <button
                     onClick={handleBatchDeleteHistory}
                     disabled={batchDeleting}
