@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { onAuthChange, getAdminSession, signOutAdmin } from '../lib/auth'
 import { getGlobalSettings, subscribeAdminAccount } from '../lib/firestore'
+import { canWrite, canDelete } from '../lib/permissions'
 import type { AdminSession } from '../types'
 import PasswordGate from '../components/admin/PasswordGate'
 import MenuManager from '../components/admin/MenuManager'
@@ -64,13 +65,17 @@ export default function AdminPage() {
     { key: 'menu', label: '菜單管理' },
     { key: 'inventory', label: '食材庫存' },
     { key: 'orders', label: '點餐管理' },
-    { key: 'messages', label: '留言管理', ownerOnly: true },
-    { key: 'notice', label: '文字設定', ownerOnly: true },
+    { key: 'messages', label: '留言管理' },
+    { key: 'notice', label: '文字設定' },
     { key: 'settings', label: '系統設定', ownerOnly: true },
     { key: 'admins', label: '帳號管理', ownerOnly: true },
   ]
 
-  const visibleTabs = tabs.filter(t => !t.ownerOnly || session.role === 'owner')
+  const visibleTabs = tabs.filter(t => {
+    if (t.ownerOnly) return session.role === 'owner'
+    const permTab = t.key as 'menu' | 'inventory' | 'orders' | 'messages' | 'notice'
+    return canWrite(session, permTab)
+  })
 
   return (
     <div className="admin-content">
@@ -105,11 +110,32 @@ export default function AdminPage() {
         ))}
       </div>
 
-      {tab === 'menu' && <MenuManager />}
-      {tab === 'inventory' && <InventoryManager />}
-      {tab === 'orders' && session && <OrderManager session={session} realModeEnabled={realModeEnabled} />}
-      {tab === 'messages' && session.role === 'owner' && <MessageManager />}
-      {tab === 'notice' && session.role === 'owner' && <NoticeManager />}
+      {tab === 'menu' && (
+        <MenuManager
+          canWrite={canWrite(session, 'menu')}
+          canDelete={canDelete(session, 'menu')}
+        />
+      )}
+      {tab === 'inventory' && (
+        <InventoryManager
+          canWrite={canWrite(session, 'inventory')}
+          canDelete={canDelete(session, 'inventory')}
+        />
+      )}
+      {tab === 'orders' && (
+        <OrderManager
+          session={session}
+          realModeEnabled={realModeEnabled}
+          canWrite={canWrite(session, 'orders')}
+          canDelete={canDelete(session, 'orders')}
+        />
+      )}
+      {tab === 'messages' && (
+        <MessageManager canDelete={canDelete(session, 'messages')} />
+      )}
+      {tab === 'notice' && (
+        <NoticeManager canWrite={canWrite(session, 'notice')} />
+      )}
       {tab === 'settings' && session.role === 'owner' && <GlobalSettingsManager />}
       {tab === 'admins' && session.role === 'owner' && <AdminManager />}
     </div>
