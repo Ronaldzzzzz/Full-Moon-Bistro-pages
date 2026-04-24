@@ -4,7 +4,11 @@ import type { NoticeConfig } from '../../types'
 import { useToast } from '../../hooks/useToast'
 import Toast from '../Toast'
 
-export default function NoticeManager() {
+interface Props {
+  canWrite: boolean
+}
+
+export default function NoticeManager({ canWrite }: Props) {
   const [notice, setNotice] = useState<NoticeConfig | null>(null)
   const [emoji, setEmoji] = useState('📢')
   const [linesText, setLinesText] = useState('')
@@ -65,6 +69,7 @@ export default function NoticeManager() {
             value={introText}
             onChange={e => setIntroText(e.target.value)}
             rows={6}
+            readOnly={!canWrite}
             placeholder={"歡迎光臨月圓餐館！\n今日特餐：…"}
             className="bg-[var(--color-bg-primary)] border border-[var(--color-border-primary)] rounded px-3 py-2 text-sm
                        text-[var(--color-text-primary)] placeholder-[#6a5030] focus:outline-none
@@ -82,6 +87,7 @@ export default function NoticeManager() {
               type="checkbox"
               checked={isActive}
               onChange={e => setIsActive(e.target.checked)}
+              disabled={!canWrite}
               className="accent-[var(--color-gold-primary)]"
             />
             顯示看板
@@ -95,6 +101,7 @@ export default function NoticeManager() {
             value={emoji}
             onChange={e => setEmoji(e.target.value)}
             placeholder="📢"
+            readOnly={!canWrite}
             className="bg-[var(--color-bg-primary)] border border-[var(--color-border-primary)] rounded px-3 py-2 text-sm
                        text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-gold-primary)] w-20"
           />
@@ -107,6 +114,7 @@ export default function NoticeManager() {
             onChange={e => setLinesText(e.target.value)}
             placeholder={"第一行內容\n第二行內容..."}
             rows={5}
+            readOnly={!canWrite}
             className="bg-[var(--color-bg-primary)] border border-[var(--color-border-primary)] rounded px-3 py-2 text-sm
                        text-[var(--color-text-primary)] placeholder-[#6a5030] focus:outline-none
                        focus:border-[var(--color-gold-primary)] resize-none transition-colors"
@@ -118,7 +126,7 @@ export default function NoticeManager() {
       <div className="flex items-center gap-3">
         <button
           onClick={handleSave}
-          disabled={saving}
+          disabled={saving || !canWrite}
           className="bg-[var(--color-gold-primary)] text-[var(--color-bg-primary)] text-sm font-semibold px-5 py-1.5 rounded
                      hover:bg-[var(--color-gold-light)] disabled:opacity-50 transition-colors"
         >
