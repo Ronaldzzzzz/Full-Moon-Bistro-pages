@@ -13,9 +13,11 @@ import {
   increment,
   writeBatch,
   runTransaction,
+  onSnapshot,
 } from 'firebase/firestore'
 import { db } from './firebase'
-import type { MenuItem, InventoryItem, Message, Reply, LiveMusicConfig, NoticeConfig, Order, GlobalSettings, PhotoUrl } from '../types'
+import type { MenuItem, InventoryItem, Message, Reply, LiveMusicConfig, NoticeConfig, Order, GlobalSettings, PhotoUrl, StaffPermissions } from '../types'
+import { DEFAULT_STAFF_PERMISSIONS } from '../types'
 
 // ─── Menu Items ────────────────────────────────────────────────
 
@@ -244,17 +246,40 @@ export async function deleteReply(
 
 // ─── Admin Management ──────────────────────────────────────────
 
-export async function getAdmins(): Promise<{ id: string; role: string; label: string }[]> {
+export interface AdminRecord {
+  id: string
+  role: string
+  label: string
+  permissions?: StaffPermissions
+}
+
+export async function getAdmins(): Promise<AdminRecord[]> {
   const snap = await getDocs(collection(db, 'adminPasswords'))
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() } as { id: string; role: string; label: string }))
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() } as AdminRecord))
 }
 
 export async function addAdmin(hash: string, role: 'owner' | 'staff', label: string): Promise<void> {
-  await setDoc(doc(db, 'adminPasswords', hash), { role, label })
+  const data: { role: string; label: string; permissions?: StaffPermissions } = { role, label }
+  if (role === 'staff') data.permissions = DEFAULT_STAFF_PERMISSIONS
+  await setDoc(doc(db, 'adminPasswords', hash), data)
 }
 
 export async function deleteAdmin(hash: string): Promise<void> {
   await deleteDoc(doc(db, 'adminPasswords', hash))
+}
+
+export async function updateAdminPermissions(
+  hash: string,
+  permissions: StaffPermissions
+): Promise<void> {
+  await updateDoc(doc(db, 'adminPasswords', hash), { permissions })
+}
+
+export function subscribeAdminAccount(
+  hash: string,
+  onChange: () => void
+): () => void {
+  return onSnapshot(doc(db, 'adminPasswords', hash), onChange)
 }
 
 // ─── Live Music ────────────────────────────────────────────────
