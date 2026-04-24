@@ -1,18 +1,15 @@
 // src/components/admin/AdminManager.tsx
 import { useEffect, useState } from 'react'
 import { getAdmins, addAdmin, deleteAdmin } from '../../lib/firestore'
+import type { AdminRecord } from '../../lib/firestore'
 import { hashPassword } from '../../lib/auth'
 import { useToast } from '../../hooks/useToast'
 import Toast from '../Toast'
-
-interface AdminAccount {
-  id: string; // This is the hash
-  role: string;
-  label: string;
-}
+import PermissionModal from './PermissionModal'
 
 export default function AdminManager() {
-  const [admins, setAdmins] = useState<AdminAccount[]>([])
+  const [admins, setAdmins] = useState<AdminRecord[]>([])
+  const [selectedAdmin, setSelectedAdmin] = useState<AdminRecord | null>(null)
   const [loading, setLoading] = useState(true)
   const [newPassword, setNewPassword] = useState('')
   const [newLabel, setNewLabel] = useState('')
@@ -23,7 +20,7 @@ export default function AdminManager() {
   async function load() {
     setLoading(true)
     const data = await getAdmins()
-    setAdmins(data as AdminAccount[])
+    setAdmins(data)
     setLoading(false)
   }
 
@@ -128,7 +125,11 @@ export default function AdminManager() {
               </tr>
             ) : (
               admins.map((admin) => (
-                <tr key={admin.id} className="hover:bg-[var(--color-bg-card-hover)] transition-colors">
+                <tr
+                  key={admin.id}
+                  onClick={() => setSelectedAdmin(admin)}
+                  className="hover:bg-[var(--color-bg-card-hover)] transition-colors cursor-pointer"
+                >
                   <td className="px-4 py-3">{admin.label}</td>
                   <td className="px-4 py-3">
                     <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
@@ -154,6 +155,13 @@ export default function AdminManager() {
           </tbody>
         </table>
       </div>
+      {selectedAdmin && (
+        <PermissionModal
+          admin={selectedAdmin}
+          onClose={() => setSelectedAdmin(null)}
+          onSaved={load}
+        />
+      )}
       <Toast toast={toast} />
     </div>
   )
